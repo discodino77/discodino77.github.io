@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Quick Collector — Rewired</title>
+  <title>Quick Collector — Formspree</title>
   <style>
     :root{--card-bg:rgba(255,255,255,0.92);--muted:#64748b;--accent:#06b6d4}
     *{box-sizing:border-box}
@@ -53,7 +53,7 @@
         <button id="openAdmin" class="btn-ghost small-btn">Open admin</button>
       </div>
     </div>
-    <footer class="small">Tip: Admin requires a token (set on the server). Don’t store secrets in client JS.</footer>
+    <footer class="small">Tip: Admin shows local entries. To see server entries, open your Formspree Dashboard inbox.</footer>
   </main>
 
   <!-- name -->
@@ -90,10 +90,10 @@
     <p class="note">Always follow your passion!</p>
   </section>
 
-  <!-- admin (password protected) -->
+  <!-- admin (local) -->
   <section class="card hidden" id="adminPanel">
     <h1>Admin panel</h1>
-    <p class="note">View, download, or copy submissions.</p>
+    <p class="note">View, download, or copy submissions saved locally. For server inbox, check Formspree dashboard.</p>
 
     <div style="display:flex;gap:8px;margin-top:10px">
       <button id="viewEntries" class="btn-primary">Show entries</button>
@@ -117,9 +117,9 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    // ===== CONFIG - replace with your public server URL (ngrok or real domain) =====
-    const SERVER_URL = "https://specifiable-praepostorial-julee.ngrok-free.dev"; // ← replace with your ngrok HTTPS URL
-    // =================================================================================
+    // ---------- FORM action (your Formspree endpoint) ----------
+    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xkgkbnvg';
+    // ----------------------------------------------------------
 
     // elements
     const viewChoose = document.getElementById('viewChoose');
@@ -179,13 +179,13 @@
       return [header.join(','), ...rows.map(r=>r.map(field => `"${String(field).replace(/"/g,'""')}"`).join(','))].join('\n');
     }
 
-    // UX feedback logging for dev
+    // UX logging
     ['girlBtn','boyBtn','nameNext','nameBack','submitAll','idBack','openAdmin','viewEntries','downloadCSV','copyClip','closeAdmin','clearAllAdmin'].forEach(id=>{
       const el = document.getElementById(id);
       if(el) el.addEventListener('click', ()=>console.log('CLICK:', id));
     });
 
-    // navigation wiring
+    // navigation
     girlBtn.addEventListener('click', ()=> { currentGender = 'Girl'; inputName.value=''; inputID.value=''; hideAllScreens(); show(viewName); inputName.focus(); });
     boyBtn.addEventListener('click', ()=> { currentGender = 'Boy'; inputName.value=''; inputID.value=''; hideAllScreens(); show(viewName); inputName.focus(); });
 
@@ -200,131 +200,65 @@
       inputID.focus();
     });
 
-    // submit handler: try POST to server, fallback to local
+    // -------- submit to Formspree (with local fallback) ----------
     submitAll.addEventListener('click', async ()=>{
       submitAll.classList.add('disabled');
       const id = inputID.value.trim();
       const name = (sessionStorage.getItem('qc_name') || '').trim();
       const entry = { t: new Date().toISOString(), gender: currentGender, name, id };
 
-      // attempt to send to server
-      let sentToServer = false;
-      if (SERVER_URL && !SERVER_URL.includes('REPLACE_WITH')) {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(()=>controller.abort(), 8000); // 8s timeout
-          const res = await fetch(`${SERVER_URL.replace(/\/$/,'')}/submit`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(entry),
-            signal: controller.signal
-          });
-          clearTimeout(timeout);
-          if(res.ok){
-            sentToServer = true;
-            toast('Sent to server ✨');
-          } else {
-            console.warn('Server returned', res.status);
-            toast('Server rejected submission — saved locally');
-          }
-        } catch (err) {
-          console.warn('Network/send error:', err);
-          toast('Could not reach server — saved locally');
+      // Try send to Formspree
+      let sent = false;
+      try {
+        if (!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes('YOUR_FORMSPREE_ENDPOINT')) throw new Error('Formspree endpoint not set');
+        const controller = new AbortController();
+        const timeout = setTimeout(()=>controller.abort(), 8000);
+        const res = await fetch(FORMSPREE_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(entry),
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        if (res.ok) {
+          sent = true;
+          toast('Sent ✓ — check Formspree inbox');
+          console.log('Formspree ok');
+        } else {
+          const body = await res.json().catch(()=>null);
+          console.warn('Formspree responded', res.status, body);
+          toast('Formspree rejected submission — saved locally');
         }
-      } else {
-        toast('Server URL not set — saved locally');
+      } catch (err) {
+        console.warn('Send to Formspree failed', err);
+        toast('Could not reach Formspree — saved locally');
       }
 
-      if (!sentToServer) {
-        saveLocal(entry);
-      }
+      if (!sent) saveLocal(entry);
 
-      // cleanup UI
+      // cleanup
       sessionStorage.removeItem('qc_name');
       inputID.value = '';
       inputName.value = '';
       submitAll.classList.remove('disabled');
 
       hideAllScreens();
-      if(currentGender === 'Girl') show(goodbyePage); else show(boyDone);
+      if (currentGender === 'Girl') show(goodbyePage); else show(boyDone);
     });
+    // ------------------------------------------------------------
 
-    // Admin: open panel and try to fetch live entries with token; fallback to local storage
-    openAdmin.addEventListener('click', async ()=>{
-      const token = prompt('Enter admin token (server token):');
-      if (!token) return;
-
-      // try server first
-      if (SERVER_URL && !SERVER_URL.includes('REPLACE_WITH')) {
-        try {
-          const res = await fetch(`${SERVER_URL.replace(/\/$/,'')}/entries`, {
-            headers: { 'X-Admin-Token': token }
-          });
-          if (res.ok){
-            const arr = await res.json();
-            entriesArea.value = entriesToText(arr);
-            hideAllScreens();
-            show(adminPanel);
-            return;
-          } else {
-            alert('Server denied access or returned error. Showing local entries.');
-          }
-        } catch (e) {
-          console.warn('Admin fetch failed:', e);
-          alert('Could not reach server. Showing local entries.');
-        }
-      } else {
-        alert('Server URL not configured — showing local entries.');
-      }
-
-      // fallback: local
-      entriesArea.value = entriesToText(getLocal());
+    // Admin (local view)
+    openAdmin.addEventListener('click', ()=>{
       hideAllScreens();
       show(adminPanel);
-    });
-
-    adminEntries.addEventListener('click', async ()=> {
-      const token = prompt('Enter admin token (Cancel to view local):');
-      if (token && SERVER_URL && !SERVER_URL.includes('REPLACE_WITH')) {
-        try {
-          const res = await fetch(`${SERVER_URL.replace(/\/$/,'')}/entries`, { headers: { 'X-Admin-Token': token }});
-          if (res.ok) {
-            const arr = await res.json();
-            entriesArea.value = entriesToText(arr);
-            return;
-          } else {
-            alert('Server returned error — showing local.');
-          }
-        } catch(e){
-          console.warn(e);
-          alert('Failed to fetch from server — showing local.');
-        }
-      }
       entriesArea.value = entriesToText(getLocal());
     });
 
-    downloadCSV.addEventListener('click', async ()=>{
-      const token = prompt('Enter admin token to download server CSV (Cancel for local):');
-      if (token && SERVER_URL && !SERVER_URL.includes('REPLACE_WITH')) {
-        try {
-          const res = await fetch(`${SERVER_URL.replace(/\/$/,'')}/download.csv`, { headers: { 'X-Admin-Token': token }});
-          if (res.ok) {
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'entries.csv';
-            document.body.appendChild(a); a.click(); a.remove();
-            URL.revokeObjectURL(url);
-            return;
-          } else {
-            alert('Server denied CSV. Falling back to local CSV.');
-          }
-        } catch (e) {
-          console.warn(e);
-          alert('Failed server download. Falling back to local CSV.');
-        }
-      }
-      // local CSV
+    adminEntries.addEventListener('click', ()=>{
+      entriesArea.value = entriesToText(getLocal());
+    });
+
+    downloadCSV.addEventListener('click', ()=>{
       const csv = entriesToCSV(getLocal());
       const blob = new Blob([csv], {type: 'text/csv'});
       const url = URL.createObjectURL(blob);
@@ -332,6 +266,7 @@
       a.href = url; a.download = 'entries_local.csv';
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
+      toast('Local CSV downloaded');
     });
 
     copyClip.addEventListener('click', async ()=>{
@@ -341,16 +276,13 @@
     });
 
     clearAllAdmin.addEventListener('click', ()=>{
-      if (!confirm('Clear local saved entries? This only removes localStorage, not server data.')) return;
+      if (!confirm('Clear local saved entries? This only removes localStorage, not Formspree data.')) return;
       localStorage.removeItem(KEY);
       entriesArea.value = 'No entries yet.';
       toast('Local entries cleared');
     });
 
-    closeAdmin.addEventListener('click', ()=>{
-      hideAllScreens();
-      show(viewChoose);
-    });
+    closeAdmin.addEventListener('click', ()=>{ hideAllScreens(); show(viewChoose); });
 
     function hideAllScreens(){
       hide(viewChoose); hide(viewName); hide(viewID); hide(goodbyePage); hide(boyDone); hide(adminPanel);
@@ -362,4 +294,3 @@
   </script>
 </body>
 </html>
-

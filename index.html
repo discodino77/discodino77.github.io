@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Quick Collector — Rewired</title>
   <style>
-    :root{--card-bg:rgba(255,255,255,0.88);--muted:#64748b;--accent:#06b6d4}
+    :root{--card-bg:rgba(255,255,255,0.92);--muted:#64748b;--accent:#06b6d4}
     *{box-sizing:border-box}
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
@@ -24,34 +24,36 @@
     .btn-ghost{background:transparent;border:1px solid rgba(2,6,23,0.06);color:#062023}
     input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:8px}
     .hidden{display:none}
-    textarea{width:100%;height:140px;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:10px}
+    textarea{width:100%;height:140px;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:10px;white-space:pre-wrap}
     .note{font-size:0.95rem;color:var(--muted);margin-top:10px}
     .center{display:flex;justify-content:center}
     footer.small{font-size:0.85rem;color:var(--muted);margin-top:10px;text-align:center}
+    .muted{color:var(--muted);font-size:0.92rem}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#04202a;color:white;padding:10px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(2,6,23,0.3);display:none}
+    .disabled{opacity:0.6;pointer-events:none}
+    .small-btn{padding:8px 10px;border-radius:8px;font-weight:600}
   </style>
 </head>
 <body>
   <!-- choose -->
   <main class="card" id="viewChoose">
     <h1>Quick check</h1>
-    <p>Pick how you identify to continue.</p>
+    <p class="muted">Pick how you identify to continue.</p>
 
     <div class="row" style="margin-bottom:12px">
       <button id="girlBtn" class="btn-primary" style="flex:1">Girl</button>
       <button id="boyBtn" class="btn-ghost" style="flex:1">Boy</button>
     </div>
 
-    <p class="note small">bonus joke: ek baar ek raja fakeer ko bolta hai ae gareeb😭😭😭😭😭😂😂😂😂😂😂
-      kitna funny joke hai yawwr ye 😭😭😂😂😂😂😂
-    </p>
+    <p class="note">Bonus joke: ek baar ek raja fakeer ko bolta hai ae gareeb — vibe check 😂</p>
 
     <div style="margin-top:18px">
       <label class="note">Owner actions</label>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="openAdmin" class="btn-ghost">Open admin</button>
+        <button id="openAdmin" class="btn-ghost small-btn">Open admin</button>
       </div>
     </div>
-    <footer class="small">Tip: Admin requires a password.</footer>
+    <footer class="small">Tip: Admin requires a token (set on the server). Don’t store secrets in client JS.</footer>
   </main>
 
   <!-- name -->
@@ -104,7 +106,7 @@
     </div>
 
     <div id="adminClearWrap" style="display:flex;gap:8px;margin-top:10px">
-      <button id="clearAllAdmin" class="btn-ghost">Clear all data (local only)</button>
+      <button id="clearAllAdmin" class="btn-ghost">Clear local data</button>
     </div>
 
     <div style="display:flex;gap:8px;margin-top:8px">
@@ -112,11 +114,12 @@
     </div>
   </section>
 
+  <div id="toast" class="toast"></div>
+
   <script>
-    // ---- CONFIG: set this to your public server URL from ngrok or your domain ----
-    const SERVER_URL = "https://specifiable-praepostorial-julee.ngrok-free.dev"; // example: https://abc12345.ngrok.io
-    // admin token: when you start the server use ADMIN_TOKEN=supersecret123 node server.js
-    // you'll type the same token when prompted in the admin UI
+    // ===== CONFIG - replace with your public server URL (ngrok or real domain) =====
+    const SERVER_URL = "https://specifiable-praepostorial-julee.ngrok-free.dev"; // ← replace with your ngrok HTTPS URL
+    // =================================================================================
 
     // elements
     const viewChoose = document.getElementById('viewChoose');
@@ -143,67 +146,53 @@
     const closeAdmin = document.getElementById('closeAdmin');
     const clearAllAdmin = document.getElementById('clearAllAdmin');
 
+    const toastEl = document.getElementById('toast');
+
     // state
     let currentGender = null;
     const KEY = 'quick_collector_entries_v1';
 
+    // helpers
     function show(el){ el.classList.remove('hidden'); }
     function hide(el){ el.classList.add('hidden'); }
+    function toast(msg, time=2500){
+      toastEl.textContent = msg;
+      toastEl.style.display = 'block';
+      setTimeout(()=> toastEl.style.display = 'none', time);
+    }
 
-    function saveSubmission(entry){
+    function saveLocal(entry){
       const raw = localStorage.getItem(KEY);
       const arr = raw ? JSON.parse(raw) : [];
       arr.push(entry);
       localStorage.setItem(KEY, JSON.stringify(arr));
     }
-    function getEntries(){ const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : []; }
+    function getLocal(){ const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : []; }
 
     function entriesToText(arr){
       if(!arr.length) return 'No entries yet.';
-      return arr.map(a => `[${a.t}] ${a.gender} | name: ${a.name || '-'} | id: ${a.id || '-'}`).join('\n');
+      return arr.map(a => `[${a.t}] ${a.gender} | name: ${a.name || '-'} | id: ${a.id || '-'} | ip: ${a.remoteIP||'-'}`).join('\n\n');
     }
     function entriesToCSV(arr){
-      const header = ['timestamp','gender','name','id'];
-      const rows = arr.map(a => [a.t, a.gender, `"${(a.name||'').replace(/"/g,'""')}"`, `"${(a.id||'').replace(/"/g,'""')}"`]);
-      return [header.join(','), ...rows.map(r=>r.join(','))].join('\n');
+      const header = ['timestamp','gender','name','id','remoteIP'];
+      const rows = arr.map(a => [a.t, a.gender, (a.name||'').replace(/"/g,'""'), (a.id||'').replace(/"/g,'""'), a.remoteIP||'']);
+      return [header.join(','), ...rows.map(r=>r.map(field => `"${String(field).replace(/"/g,'""')}"`).join(','))].join('\n');
     }
 
-    // buttons click feedback
+    // UX feedback logging for dev
     ['girlBtn','boyBtn','nameNext','nameBack','submitAll','idBack','openAdmin','viewEntries','downloadCSV','copyClip','closeAdmin','clearAllAdmin'].forEach(id=>{
       const el = document.getElementById(id);
       if(el) el.addEventListener('click', ()=>console.log('CLICK:', id));
     });
 
-    // wiring
-    girlBtn.addEventListener('click', ()=>{
-      currentGender = 'Girl';
-      inputName.value = '';
-      inputID.value = '';
-      hideAllScreens();
-      show(viewName);
-      inputName.focus();
-    });
+    // navigation wiring
+    girlBtn.addEventListener('click', ()=> { currentGender = 'Girl'; inputName.value=''; inputID.value=''; hideAllScreens(); show(viewName); inputName.focus(); });
+    boyBtn.addEventListener('click', ()=> { currentGender = 'Boy'; inputName.value=''; inputID.value=''; hideAllScreens(); show(viewName); inputName.focus(); });
 
-    boyBtn.addEventListener('click', ()=>{
-      currentGender = 'Boy';
-      inputName.value = '';
-      inputID.value = '';
-      hideAllScreens();
-      show(viewName);
-      inputName.focus();
-    });
+    nameBack.addEventListener('click', ()=> { hideAllScreens(); show(viewChoose); });
+    idBack.addEventListener('click', ()=> { hideAllScreens(); show(viewName); });
 
-    nameBack.addEventListener('click', ()=>{
-      hideAllScreens();
-      show(viewChoose);
-    });
-
-    idBack.addEventListener('click', ()=>{
-      hideAllScreens();
-      show(viewName);
-    });
-
-    nameNext.addEventListener('click', ()=>{
+    nameNext.addEventListener('click', ()=> {
       const name = inputName.value.trim();
       sessionStorage.setItem('qc_name', name);
       hideAllScreens();
@@ -211,107 +200,132 @@
       inputID.focus();
     });
 
-    // -------- submit sends to your server; falls back to localStorage if network fails -----
+    // submit handler: try POST to server, fallback to local
     submitAll.addEventListener('click', async ()=>{
+      submitAll.classList.add('disabled');
       const id = inputID.value.trim();
-      const name = sessionStorage.getItem('qc_name') || '';
+      const name = (sessionStorage.getItem('qc_name') || '').trim();
       const entry = { t: new Date().toISOString(), gender: currentGender, name, id };
 
-      // Try send to server
-      try {
-        if (!SERVER_URL || SERVER_URL.includes('REPLACE_WITH')) throw new Error('SERVER_URL not set');
-        const res = await fetch(`${SERVER_URL}/submit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(entry)
-        });
-        if (!res.ok) throw new Error('server returned ' + res.status);
-        console.log('Sent to server ok');
-      } catch (err) {
-        console.warn('Failed to send to server, saving locally:', err);
-        saveSubmission(entry);
+      // attempt to send to server
+      let sentToServer = false;
+      if (SERVER_URL && !SERVER_URL.includes('REPLACE_WITH')) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(()=>controller.abort(), 8000); // 8s timeout
+          const res = await fetch(`${SERVER_URL.replace(/\/$/,'')}/submit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(entry),
+            signal: controller.signal
+          });
+          clearTimeout(timeout);
+          if(res.ok){
+            sentToServer = true;
+            toast('Sent to server ✨');
+          } else {
+            console.warn('Server returned', res.status);
+            toast('Server rejected submission — saved locally');
+          }
+        } catch (err) {
+          console.warn('Network/send error:', err);
+          toast('Could not reach server — saved locally');
+        }
+      } else {
+        toast('Server URL not set — saved locally');
       }
 
-      // clear session & form
+      if (!sentToServer) {
+        saveLocal(entry);
+      }
+
+      // cleanup UI
       sessionStorage.removeItem('qc_name');
       inputID.value = '';
       inputName.value = '';
+      submitAll.classList.remove('disabled');
 
-      // final page
       hideAllScreens();
       if(currentGender === 'Girl') show(goodbyePage); else show(boyDone);
     });
 
-    // Admin: prompt for token and call server /entries
+    // Admin: open panel and try to fetch live entries with token; fallback to local storage
     openAdmin.addEventListener('click', async ()=>{
-      const token = prompt('Enter admin token:'); // type the same token you set in server env
+      const token = prompt('Enter admin token (server token):');
       if (!token) return;
 
       // try server first
-      try {
-        if (!SERVER_URL || SERVER_URL.includes('REPLACE_WITH')) throw new Error('SERVER_URL not set');
-        const res = await fetch(`${SERVER_URL}/entries`, {
-          headers: { 'X-Admin-Token': token }
-        });
-        if (!res.ok) throw new Error('server denied ' + res.status);
-        const arr = await res.json();
-        entriesArea.value = arr.length ? arr.map(a => `[${a.t}] ${a.gender} | ${a.name} | ${a.id} | ${a.remoteIP||'-'}`).join('\n') : 'No entries from server.';
-        hideAllScreens();
-        show(adminPanel);
-        return;
-      } catch(err){
-        console.warn('Server entries fetch failed:', err);
+      if (SERVER_URL && !SERVER_URL.includes('REPLACE_WITH')) {
+        try {
+          const res = await fetch(`${SERVER_URL.replace(/\/$/,'')}/entries`, {
+            headers: { 'X-Admin-Token': token }
+          });
+          if (res.ok){
+            const arr = await res.json();
+            entriesArea.value = entriesToText(arr);
+            hideAllScreens();
+            show(adminPanel);
+            return;
+          } else {
+            alert('Server denied access or returned error. Showing local entries.');
+          }
+        } catch (e) {
+          console.warn('Admin fetch failed:', e);
+          alert('Could not reach server. Showing local entries.');
+        }
+      } else {
+        alert('Server URL not configured — showing local entries.');
       }
 
-      // fallback: show local entries
+      // fallback: local
+      entriesArea.value = entriesToText(getLocal());
       hideAllScreens();
       show(adminPanel);
-      entriesArea.value = entriesToText(getEntries());
     });
 
-    closeAdmin.addEventListener('click', ()=>{
-      hideAllScreens();
-      show(viewChoose);
-    });
-
-    adminEntries.addEventListener('click', async ()=>{
-      const token = prompt('Enter admin token to fetch live entries (or Cancel to show local):');
-      if(token){
+    adminEntries.addEventListener('click', async ()=> {
+      const token = prompt('Enter admin token (Cancel to view local):');
+      if (token && SERVER_URL && !SERVER_URL.includes('REPLACE_WITH')) {
         try {
-          const res = await fetch(`${SERVER_URL}/entries`, { headers: { 'X-Admin-Token': token }});
-          if (!res.ok) throw new Error('server denied ' + res.status);
-          const arr = await res.json();
-          entriesArea.value = arr.length ? arr.map(a => `[${a.t}] ${a.gender} | ${a.name} | ${a.id} | ${a.remoteIP||'-'}`).join('\n') : 'No entries from server.';
-          return;
+          const res = await fetch(`${SERVER_URL.replace(/\/$/,'')}/entries`, { headers: { 'X-Admin-Token': token }});
+          if (res.ok) {
+            const arr = await res.json();
+            entriesArea.value = entriesToText(arr);
+            return;
+          } else {
+            alert('Server returned error — showing local.');
+          }
         } catch(e){
-          alert('Failed to fetch from server. Showing local entries.');
           console.warn(e);
+          alert('Failed to fetch from server — showing local.');
         }
       }
-      // show local entries if token not given or fetch failed
-      entriesArea.value = entriesToText(getEntries());
+      entriesArea.value = entriesToText(getLocal());
     });
 
     downloadCSV.addEventListener('click', async ()=>{
-      const token = prompt('Enter admin token to download CSV from server (or Cancel to download local CSV):');
-      if(token){
+      const token = prompt('Enter admin token to download server CSV (Cancel for local):');
+      if (token && SERVER_URL && !SERVER_URL.includes('REPLACE_WITH')) {
         try {
-          const res = await fetch(`${SERVER_URL}/download.csv`, { headers: { 'X-Admin-Token': token }});
-          if (!res.ok) throw new Error('server denied ' + res.status);
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url; a.download = 'entries.csv';
-          document.body.appendChild(a); a.click(); a.remove();
-          URL.revokeObjectURL(url);
-          return;
-        } catch(e){
-          alert('Server download failed. Will try local CSV.');
+          const res = await fetch(`${SERVER_URL.replace(/\/$/,'')}/download.csv`, { headers: { 'X-Admin-Token': token }});
+          if (res.ok) {
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'entries.csv';
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+            return;
+          } else {
+            alert('Server denied CSV. Falling back to local CSV.');
+          }
+        } catch (e) {
           console.warn(e);
+          alert('Failed server download. Falling back to local CSV.');
         }
       }
-      // local CSV fallback
-      const csv = entriesToCSV(getEntries());
+      // local CSV
+      const csv = entriesToCSV(getLocal());
       const blob = new Blob([csv], {type: 'text/csv'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -321,20 +335,21 @@
     });
 
     copyClip.addEventListener('click', async ()=>{
-      const txt = entriesArea.value || entriesToText(getEntries());
-      try {
-        await navigator.clipboard.writeText(txt);
-        alert('Copied to clipboard');
-      } catch(e) {
-        alert('Unable to copy (browser blocked) — copy manually.');
-      }
+      const txt = entriesArea.value || entriesToText(getLocal());
+      try { await navigator.clipboard.writeText(txt); toast('Copied to clipboard 👍'); }
+      catch(e){ alert('Unable to copy. Select and copy manually.'); }
     });
 
     clearAllAdmin.addEventListener('click', ()=>{
-      if (!confirm('Clear local saved entries? This only clears localStorage, not server data.')) return;
+      if (!confirm('Clear local saved entries? This only removes localStorage, not server data.')) return;
       localStorage.removeItem(KEY);
       entriesArea.value = 'No entries yet.';
-      alert('Cleared local entries.');
+      toast('Local entries cleared');
+    });
+
+    closeAdmin.addEventListener('click', ()=>{
+      hideAllScreens();
+      show(viewChoose);
     });
 
     function hideAllScreens(){
@@ -347,5 +362,4 @@
   </script>
 </body>
 </html>
-
 

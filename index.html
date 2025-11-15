@@ -26,42 +26,28 @@
     .hidden{display:none}
     textarea{width:100%;height:140px;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:10px;white-space:pre-wrap}
     .note{font-size:0.95rem;color:var(--muted);margin-top:10px}
-    .center{display:flex;justify-content:center}
     footer.small{font-size:0.85rem;color:var(--muted);margin-top:10px;text-align:center}
-    .muted{color:var(--muted);font-size:0.92rem}
-    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#04202a;color:white;padding:10px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(2,6,23,0.3);display:none}
-    .disabled{opacity:0.6;pointer-events:none}
-    .small-btn{padding:8px 10px;border-radius:8px;font-weight:600}
   </style>
 </head>
 <body>
-  <!-- choose -->
+
   <main class="card" id="viewChoose">
     <h1>Quick check</h1>
-    <p class="muted">Pick how you identify to continue.</p>
+    <p class="note">Pick how you identify to continue.</p>
 
-    <div class="row" style="margin-bottom:12px">
+    <div class="row">
       <button id="girlBtn" class="btn-primary" style="flex:1">Girl</button>
       <button id="boyBtn" class="btn-ghost" style="flex:1">Boy</button>
     </div>
 
-    <p class="note">Bonus joke: ek baar ek raja fakeer ko bolta hai ae gareeb — vibe check 😂</p>
-
-    <div style="margin-top:18px">
-      <label class="note">Owner actions</label>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="openAdmin" class="btn-ghost small-btn">Open admin</button>
-      </div>
-    </div>
-    <footer class="small">Tip: Admin shows local entries. To see server entries, open your Formspree Dashboard inbox.</footer>
+    <footer class="small">Admin can view local entries only.</footer>
   </main>
 
   <!-- name -->
   <section class="card hidden" id="viewName">
-    <h1>Tell me your name</h1>
-    <p class="note">This helps the owner know who submitted.</p>
-    <input id="inputName" placeholder="Type your name" autocomplete="off" />
-    <div style="display:flex;gap:8px;margin-top:12px">
+    <h1>Your name?</h1>
+    <input id="inputName" placeholder="Type your name" />
+    <div class="row" style="margin-top:12px">
       <button id="nameNext" class="btn-primary">Next</button>
       <button id="nameBack" class="btn-ghost">Back</button>
     </div>
@@ -70,227 +56,92 @@
   <!-- id -->
   <section class="card hidden" id="viewID">
     <h1>Social ID</h1>
-    <p class="note">Add Insta or Snap username (no @ needed).</p>
-    <input id="inputID" placeholder="your_insta_or_snap" autocomplete="off" />
-    <div style="display:flex;gap:8px;margin-top:12px">
+    <p class="note">Insta or Snap (without @)</p>
+    <input id="inputID" placeholder="your_insta_or_snap" />
+    <div class="row" style="margin-top:12px">
       <button id="submitAll" class="btn-primary">Submit</button>
       <button id="idBack" class="btn-ghost">Back</button>
     </div>
   </section>
 
-  <!-- goodbye for girls -->
   <section class="card hidden" id="goodbyePage">
     <h1>Goodbye sweetie 💕</h1>
-    <p class="note">Your data has been submitted. Thanks!</p>
+    <p class="note">Your data has been submitted.</p>
   </section>
 
-  <!-- done for boys -->
   <section class="card hidden" id="boyDone">
     <h1>You're king 👑</h1>
-    <p class="note">Always follow your passion!</p>
+    <p class="note">Sent successfully.</p>
   </section>
-
-  <!-- admin (local) -->
-  <section class="card hidden" id="adminPanel">
-    <h1>Admin panel</h1>
-    <p class="note">View, download, or copy submissions saved locally. For server inbox, check Formspree dashboard.</p>
-
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button id="viewEntries" class="btn-primary">Show entries</button>
-      <button id="downloadCSV" class="btn-ghost">Download CSV</button>
-      <button id="copyClip" class="btn-ghost">Copy to clipboard</button>
-    </div>
-
-    <div style="margin-top:12px">
-      <textarea id="entriesArea" readonly placeholder="Entries will appear here"></textarea>
-    </div>
-
-    <div id="adminClearWrap" style="display:flex;gap:8px;margin-top:10px">
-      <button id="clearAllAdmin" class="btn-ghost">Clear local data</button>
-    </div>
-
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button id="closeAdmin" class="btn-ghost">Close</button>
-    </div>
-  </section>
-
-  <div id="toast" class="toast"></div>
 
   <script>
-    // ---------- FORM action (your Formspree endpoint) ----------
-    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xkgkbnvg';
-    // ----------------------------------------------------------
+    // ========== FORM ENDPOINT (YOUR FORMSPREE LINK) ==========
+    const FORMSPREE_ENDPOINT = "https://formspree.io/f/xkgkbnvg";
+    // =========================================================
 
-    // elements
-    const viewChoose = document.getElementById('viewChoose');
-    const viewName = document.getElementById('viewName');
-    const viewID = document.getElementById('viewID');
-    const goodbyePage = document.getElementById('goodbyePage');
-    const boyDone = document.getElementById('boyDone');
-    const adminPanel = document.getElementById('adminPanel');
+    const viewChoose = document.getElementById("viewChoose");
+    const viewName = document.getElementById("viewName");
+    const viewID = document.getElementById("viewID");
+    const goodbyePage = document.getElementById("goodbyePage");
+    const boyDone = document.getElementById("boyDone");
 
-    const girlBtn = document.getElementById('girlBtn');
-    const boyBtn = document.getElementById('boyBtn');
-    const nameNext = document.getElementById('nameNext');
-    const nameBack = document.getElementById('nameBack');
-    const idBack = document.getElementById('idBack');
-    const submitAll = document.getElementById('submitAll');
-    const inputName = document.getElementById('inputName');
-    const inputID = document.getElementById('inputID');
+    const girlBtn = document.getElementById("girlBtn");
+    const boyBtn = document.getElementById("boyBtn");
+    const nameNext = document.getElementById("nameNext");
+    const nameBack = document.getElementById("nameBack");
+    const idBack = document.getElementById("idBack");
+    const submitAll = document.getElementById("submitAll");
 
-    const openAdmin = document.getElementById('openAdmin');
-    const adminEntries = document.getElementById('viewEntries');
-    const entriesArea = document.getElementById('entriesArea');
-    const downloadCSV = document.getElementById('downloadCSV');
-    const copyClip = document.getElementById('copyClip');
-    const closeAdmin = document.getElementById('closeAdmin');
-    const clearAllAdmin = document.getElementById('clearAllAdmin');
+    const inputName = document.getElementById("inputName");
+    const inputID = document.getElementById("inputID");
 
-    const toastEl = document.getElementById('toast');
-
-    // state
     let currentGender = null;
-    const KEY = 'quick_collector_entries_v1';
 
-    // helpers
-    function show(el){ el.classList.remove('hidden'); }
-    function hide(el){ el.classList.add('hidden'); }
-    function toast(msg, time=2500){
-      toastEl.textContent = msg;
-      toastEl.style.display = 'block';
-      setTimeout(()=> toastEl.style.display = 'none', time);
+    function show(el){ el.classList.remove("hidden"); }
+    function hide(el){ el.classList.add("hidden"); }
+    function hideAll(){
+      hide(viewChoose); hide(viewName); hide(viewID); hide(goodbyePage); hide(boyDone);
     }
 
-    function saveLocal(entry){
-      const raw = localStorage.getItem(KEY);
-      const arr = raw ? JSON.parse(raw) : [];
-      arr.push(entry);
-      localStorage.setItem(KEY, JSON.stringify(arr));
-    }
-    function getLocal(){ const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : []; }
-
-    function entriesToText(arr){
-      if(!arr.length) return 'No entries yet.';
-      return arr.map(a => `[${a.t}] ${a.gender} | name: ${a.name || '-'} | id: ${a.id || '-'} | ip: ${a.remoteIP||'-'}`).join('\n\n');
-    }
-    function entriesToCSV(arr){
-      const header = ['timestamp','gender','name','id','remoteIP'];
-      const rows = arr.map(a => [a.t, a.gender, (a.name||'').replace(/"/g,'""'), (a.id||'').replace(/"/g,'""'), a.remoteIP||'']);
-      return [header.join(','), ...rows.map(r=>r.map(field => `"${String(field).replace(/"/g,'""')}"`).join(','))].join('\n');
-    }
-
-    // UX logging
-    ['girlBtn','boyBtn','nameNext','nameBack','submitAll','idBack','openAdmin','viewEntries','downloadCSV','copyClip','closeAdmin','clearAllAdmin'].forEach(id=>{
-      const el = document.getElementById(id);
-      if(el) el.addEventListener('click', ()=>console.log('CLICK:', id));
+    girlBtn.addEventListener("click", ()=>{
+      currentGender = "Girl";
+      hideAll(); show(viewName);
     });
 
-    // navigation
-    girlBtn.addEventListener('click', ()=> { currentGender = 'Girl'; inputName.value=''; inputID.value=''; hideAllScreens(); show(viewName); inputName.focus(); });
-    boyBtn.addEventListener('click', ()=> { currentGender = 'Boy'; inputName.value=''; inputID.value=''; hideAllScreens(); show(viewName); inputName.focus(); });
-
-    nameBack.addEventListener('click', ()=> { hideAllScreens(); show(viewChoose); });
-    idBack.addEventListener('click', ()=> { hideAllScreens(); show(viewName); });
-
-    nameNext.addEventListener('click', ()=> {
-      const name = inputName.value.trim();
-      sessionStorage.setItem('qc_name', name);
-      hideAllScreens();
-      show(viewID);
-      inputID.focus();
+    boyBtn.addEventListener("click", ()=>{
+      currentGender = "Boy";
+      hideAll(); show(viewName);
     });
 
-    // -------- submit to Formspree (with local fallback) ----------
-    submitAll.addEventListener('click', async ()=>{
-      submitAll.classList.add('disabled');
+    nameBack.addEventListener("click", ()=>{ hideAll(); show(viewChoose); });
+    idBack.addEventListener("click", ()=>{ hideAll(); show(viewName); });
+
+    nameNext.addEventListener("click", ()=>{
+      sessionStorage.setItem("qc_name", inputName.value.trim());
+      hideAll(); show(viewID);
+    });
+
+    submitAll.addEventListener("click", async ()=>{
+      const name = sessionStorage.getItem("qc_name") || "";
       const id = inputID.value.trim();
-      const name = (sessionStorage.getItem('qc_name') || '').trim();
       const entry = { t: new Date().toISOString(), gender: currentGender, name, id };
 
-      // Try send to Formspree
-      let sent = false;
       try {
-        if (!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes('YOUR_FORMSPREE_ENDPOINT')) throw new Error('Formspree endpoint not set');
-        const controller = new AbortController();
-        const timeout = setTimeout(()=>controller.abort(), 8000);
         const res = await fetch(FORMSPREE_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify(entry),
-          signal: controller.signal
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(entry)
         });
-        clearTimeout(timeout);
-        if (res.ok) {
-          sent = true;
-          toast('Sent ✓ — check Formspree inbox');
-          console.log('Formspree ok');
-        } else {
-          const body = await res.json().catch(()=>null);
-          console.warn('Formspree responded', res.status, body);
-          toast('Formspree rejected submission — saved locally');
-        }
-      } catch (err) {
-        console.warn('Send to Formspree failed', err);
-        toast('Could not reach Formspree — saved locally');
+
+        if (!res.ok) throw new Error("Formspree error");
+      } catch (err){
+        console.warn("Failed to send", err);
       }
 
-      if (!sent) saveLocal(entry);
-
-      // cleanup
-      sessionStorage.removeItem('qc_name');
-      inputID.value = '';
-      inputName.value = '';
-      submitAll.classList.remove('disabled');
-
-      hideAllScreens();
-      if (currentGender === 'Girl') show(goodbyePage); else show(boyDone);
+      hideAll();
+      if(currentGender === "Girl") show(goodbyePage);
+      else show(boyDone);
     });
-    // ------------------------------------------------------------
-
-    // Admin (local view)
-    openAdmin.addEventListener('click', ()=>{
-      hideAllScreens();
-      show(adminPanel);
-      entriesArea.value = entriesToText(getLocal());
-    });
-
-    adminEntries.addEventListener('click', ()=>{
-      entriesArea.value = entriesToText(getLocal());
-    });
-
-    downloadCSV.addEventListener('click', ()=>{
-      const csv = entriesToCSV(getLocal());
-      const blob = new Blob([csv], {type: 'text/csv'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'entries_local.csv';
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-      toast('Local CSV downloaded');
-    });
-
-    copyClip.addEventListener('click', async ()=>{
-      const txt = entriesArea.value || entriesToText(getLocal());
-      try { await navigator.clipboard.writeText(txt); toast('Copied to clipboard 👍'); }
-      catch(e){ alert('Unable to copy. Select and copy manually.'); }
-    });
-
-    clearAllAdmin.addEventListener('click', ()=>{
-      if (!confirm('Clear local saved entries? This only removes localStorage, not Formspree data.')) return;
-      localStorage.removeItem(KEY);
-      entriesArea.value = 'No entries yet.';
-      toast('Local entries cleared');
-    });
-
-    closeAdmin.addEventListener('click', ()=>{ hideAllScreens(); show(viewChoose); });
-
-    function hideAllScreens(){
-      hide(viewChoose); hide(viewName); hide(viewID); hide(goodbyePage); hide(boyDone); hide(adminPanel);
-    }
-
-    // init
-    hideAllScreens();
-    show(viewChoose);
   </script>
 </body>
 </html>

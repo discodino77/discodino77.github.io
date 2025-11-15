@@ -104,7 +104,7 @@
     </div>
 
     <div id="adminClearWrap" style="display:flex;gap:8px;margin-top:10px">
-      <button id="clearAllAdmin" class="btn-ghost">Clear all data</button>
+      <button id="clearAllAdmin" class="btn-ghost">Clear all data (local only)</button>
     </div>
 
     <div style="display:flex;gap:8px;margin-top:8px">
@@ -113,6 +113,11 @@
   </section>
 
   <script>
+    // ---- CONFIG: set this to your public server URL from ngrok or your domain ----
+    const SERVER_URL = 'https://REPLACE_WITH_YOUR_NGROK_OR_DOMAIN'; // example: https://abc12345.ngrok.io
+    // admin token: when you start the server use ADMIN_TOKEN=supersecret123 node server.js
+    // you'll type the same token when prompted in the admin UI
+
     // elements
     const viewChoose = document.getElementById('viewChoose');
     const viewName = document.getElementById('viewName');
@@ -140,9 +145,8 @@
 
     // state
     let currentGender = null;
-
-    // helpers
     const KEY = 'quick_collector_entries_v1';
+
     function show(el){ el.classList.remove('hidden'); }
     function hide(el){ el.classList.add('hidden'); }
 
@@ -164,10 +168,10 @@
       return [header.join(','), ...rows.map(r=>r.join(','))].join('\n');
     }
 
-    // debug test listeners so clicks are visible in console
+    // buttons click feedback
     ['girlBtn','boyBtn','nameNext','nameBack','submitAll','idBack','openAdmin','viewEntries','downloadCSV','copyClip','closeAdmin','clearAllAdmin'].forEach(id=>{
       const el = document.getElementById(id);
-      if(el) el.addEventListener('click', ()=>console.log('TEST CLICK:', id));
+      if(el) el.addEventListener('click', ()=>console.log('CLICK:', id));
     });
 
     // wiring
@@ -200,7 +204,6 @@
     });
 
     nameNext.addEventListener('click', ()=>{
-      // proceed to ID screen
       const name = inputName.value.trim();
       sessionStorage.setItem('qc_name', name);
       hideAllScreens();
@@ -208,31 +211,59 @@
       inputID.focus();
     });
 
-    submitAll.addEventListener('click', ()=>{
+    // -------- submit sends to your server; falls back to localStorage if network fails -----
+    submitAll.addEventListener('click', async ()=>{
       const id = inputID.value.trim();
       const name = sessionStorage.getItem('qc_name') || '';
-      const entry = { t: new Date().toLocaleString(), gender: currentGender, name, id };
-      saveSubmission(entry);
-      // clear session storage
+      const entry = { t: new Date().toISOString(), gender: currentGender, name, id };
+
+      // Try send to server
+      try {
+        if (!SERVER_URL || SERVER_URL.includes('REPLACE_WITH')) throw new Error('SERVER_URL not set');
+        const res = await fetch(`${SERVER_URL}/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        });
+        if (!res.ok) throw new Error('server returned ' + res.status);
+        console.log('Sent to server ok');
+      } catch (err) {
+        console.warn('Failed to send to server, saving locally:', err);
+        saveSubmission(entry);
+      }
+
+      // clear session & form
       sessionStorage.removeItem('qc_name');
       inputID.value = '';
       inputName.value = '';
-      // show final page depending on gender
+
+      // final page
       hideAllScreens();
-      if(currentGender === 'Girl'){
-        show(goodbyePage); // stops here
-      } else {
-        show(boyDone); // stops here
-      }
+      if(currentGender === 'Girl') show(goodbyePage); else show(boyDone);
     });
 
-    // admin (password-protected)
-    openAdmin.addEventListener('click', ()=>{
-      const pass = prompt('Enter admin password:');
-      if(pass !== 'PKpk55@?'){
-        alert('Wrong password');
+    // Admin: prompt for token and call server /entries
+    openAdmin.addEventListener('click', async ()=>{
+      const token = prompt('Enter admin token:'); // type the same token you set in server env
+      if (!token) return;
+
+      // try server first
+      try {
+        if (!SERVER_URL || SERVER_URL.includes('REPLACE_WITH')) throw new Error('SERVER_URL not set');
+        const res = await fetch(`${SERVER_URL}/entries`, {
+          headers: { 'X-Admin-Token': token }
+        });
+        if (!res.ok) throw new Error('server denied ' + res.status);
+        const arr = await res.json();
+        entriesArea.value = arr.length ? arr.map(a => `[${a.t}] ${a.gender} | ${a.name} | ${a.id} | ${a.remoteIP||'-'}`).join('\n') : 'No entries from server.';
+        hideAllScreens();
+        show(adminPanel);
         return;
+      } catch(err){
+        console.warn('Server entries fetch failed:', err);
       }
+
+      // fallback: show local entries
       hideAllScreens();
       show(adminPanel);
       entriesArea.value = entriesToText(getEntries());
@@ -243,41 +274,69 @@
       show(viewChoose);
     });
 
-    adminEntries.addEventListener('click', ()=>{
+    adminEntries.addEventListener('click', async ()=>{
+      const token = prompt('Enter admin token to fetch live entries (or Cancel to show local):');
+      if(token){
+        try {
+          const res = await fetch(`${SERVER_URL}/entries`, { headers: { 'X-Admin-Token': token }});
+          if (!res.ok) throw new Error('server denied ' + res.status);
+          const arr = await res.json();
+          entriesArea.value = arr.length ? arr.map(a => `[${a.t}] ${a.gender} | ${a.name} | ${a.id} | ${a.remoteIP||'-'}`).join('\n') : 'No entries from server.';
+          return;
+        } catch(e){
+          alert('Failed to fetch from server. Showing local entries.');
+          console.warn(e);
+        }
+      }
+      // show local entries if token not given or fetch failed
       entriesArea.value = entriesToText(getEntries());
     });
 
-    downloadCSV.addEventListener('click', ()=>{
-      const arr = getEntries();
-      const csv = entriesToCSV(arr);
+    downloadCSV.addEventListener('click', async ()=>{
+      const token = prompt('Enter admin token to download CSV from server (or Cancel to download local CSV):');
+      if(token){
+        try {
+          const res = await fetch(`${SERVER_URL}/download.csv`, { headers: { 'X-Admin-Token': token }});
+          if (!res.ok) throw new Error('server denied ' + res.status);
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = 'entries.csv';
+          document.body.appendChild(a); a.click(); a.remove();
+          URL.revokeObjectURL(url);
+          return;
+        } catch(e){
+          alert('Server download failed. Will try local CSV.');
+          console.warn(e);
+        }
+      }
+      // local CSV fallback
+      const csv = entriesToCSV(getEntries());
       const blob = new Blob([csv], {type: 'text/csv'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = 'entries.csv';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      a.href = url; a.download = 'entries_local.csv';
+      document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     });
 
     copyClip.addEventListener('click', async ()=>{
-      const txt = entriesToText(getEntries());
-      try{
+      const txt = entriesArea.value || entriesToText(getEntries());
+      try {
         await navigator.clipboard.writeText(txt);
         alert('Copied to clipboard');
-      }catch(e){
-        alert('Unable to copy (browser blocked) — use Show entries then copy manually.');
+      } catch(e) {
+        alert('Unable to copy (browser blocked) — copy manually.');
       }
     });
 
     clearAllAdmin.addEventListener('click', ()=>{
-      if(!confirm('Clear all saved entries? This cannot be undone.')) return;
+      if (!confirm('Clear local saved entries? This only clears localStorage, not server data.')) return;
       localStorage.removeItem(KEY);
       entriesArea.value = 'No entries yet.';
-      alert('Cleared.');
+      alert('Cleared local entries.');
     });
 
-    // utils
     function hideAllScreens(){
       hide(viewChoose); hide(viewName); hide(viewID); hide(goodbyePage); hide(boyDone); hide(adminPanel);
     }
@@ -288,3 +347,4 @@
   </script>
 </body>
 </html>
+

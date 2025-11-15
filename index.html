@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Quick Collector — Formspree</title>
   <style>
-    :root{--card-bg:rgba(255,255,255,0.92);--muted:#64748b;--accent:#06b6d4}
+    :root{
+      --card-bg:rgba(255,255,255,0.92);
+      --muted:#64748b;
+      --accent:#06b6d4;
+      --text:#04202a;
+    }
     *{box-sizing:border-box}
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
@@ -14,8 +19,9 @@
         linear-gradient(180deg, rgba(7,10,25,0.18), rgba(7,10,25,0.18)),
         url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=2100&q=80') no-repeat center/cover fixed;
       -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+      color:var(--text);
     }
-    .card{width:100%;max-width:720px;background:var(--card-bg);backdrop-filter:blur(6px);border-radius:14px;padding:22px;box-shadow:0 12px 40px rgba(2,6,23,0.18);color:#04202a}
+    .card{width:100%;max-width:720px;background:var(--card-bg);backdrop-filter:blur(6px);border-radius:14px;padding:22px;box-shadow:0 12px 40px rgba(2,6,23,0.18)}
     h1{margin:0 0 6px;font-size:1.25rem}
     p{margin:0 0 14px;color:var(--muted)}
     .row{display:flex;gap:12px}
@@ -27,6 +33,17 @@
     textarea{width:100%;height:140px;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:10px;white-space:pre-wrap}
     .note{font-size:0.95rem;color:var(--muted);margin-top:10px}
     footer.small{font-size:0.85rem;color:var(--muted);margin-top:10px;text-align:center}
+    a.cta {
+      color:var(--accent);
+      font-weight:700;
+      font-size:1rem;
+      text-decoration:none;
+      display:inline-block;
+      padding:8px 12px;
+      border-radius:10px;
+      background:rgba(6,182,212,0.08);
+    }
+    .center{text-align:center}
   </style>
 </head>
 <body>
@@ -40,8 +57,7 @@
       <button id="boyBtn" class="btn-ghost" style="flex:1">Boy</button>
     </div>
 
-    <footer class="small">bonus joke: ek baar ek raja hota hai wo ek faqeer ko bolta hai, ae gareeeb😭😭😭😭😭😭😂😂😂😂😭😭🥀, 
-    ye joke kitna funny hai yaawr😭😭😭😂😂😭😭</footer>
+    <footer class="small">bonus joke: ek baar ek raja hota hai wo ek faqeer ko bolta hai, ae gareeeb😭😭😭😭😭😭😂 — ye joke kitna funny hai?</footer>
   </main>
 
   <!-- name -->
@@ -65,16 +81,26 @@
     </div>
   </section>
 
+  <!-- Girl final -->
   <section class="card hidden" id="goodbyePage">
     <h1>Goodbye sweetie 💕</h1>
     <p class="note">Your data has been submitted.</p>
+
+    <!-- Contact Batman link (WhatsApp) -->
+    <p class="note center" style="margin-top:16px;">
+      <a class="cta" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">🦇 Contact Batman</a>
+    </p>
   </section>
 
+  <!-- Boy final -->
   <section class="card hidden" id="boyDone">
     <h1>You're king 👑</h1>
-    <p class="note">nice!
-    never fake you're gneder for a bullshit site!>>>
-    you're hero of gautham</p>
+    <p class="note">nice! never fake you're gender for a bullshit site — you're hero of gautham</p>
+
+    <!-- Contact Batman link (WhatsApp) -->
+    <p class="note center" style="margin-top:16px;">
+      <a class="cta" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">🦇 Contact Batman</a>
+    </p>
   </section>
 
   <script>
@@ -141,12 +167,17 @@
         console.warn("Failed to send", err);
       }
 
+      // show correct final screen
       hideAll();
       if(currentGender === "Girl") show(goodbyePage);
       else show(boyDone);
     });
+
+    // UX nicety: prefill name if available
+    document.addEventListener("DOMContentLoaded", ()=>{
+      const prev = sessionStorage.getItem("qc_name");
+      if(prev) inputName.value = prev;
+    });
   </script>
 </body>
 </html>
-
-

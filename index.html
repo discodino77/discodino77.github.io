@@ -19,8 +19,16 @@
         linear-gradient(180deg, rgba(7,10,25,0.18), rgba(7,10,25,0.18)),
         url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=2100&q=80') no-repeat center/cover fixed;
       -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
-      color:var(--text);
+      color:var(--text); transition: background 350ms ease;
     }
+
+    /* final-bg applied to body when showing final screens */
+    .final-bg {
+      background:
+        linear-gradient(180deg, rgba(7,10,25,0.22), rgba(7,10,25,0.22)),
+        url('igo1.png') no-repeat center/cover fixed !important;
+    }
+
     .card{width:100%;max-width:720px;background:var(--card-bg);backdrop-filter:blur(6px);border-radius:14px;padding:22px;box-shadow:0 12px 40px rgba(2,6,23,0.18)}
     h1{margin:0 0 6px;font-size:1.25rem}
     p{margin:0 0 14px;color:var(--muted)}
@@ -44,11 +52,16 @@
       background:rgba(6,182,212,0.08);
     }
     .center{text-align:center}
+
+    /* small niceties */
+    .card.fade-in { animation: fadeIn .28s ease both; }
+    @keyframes fadeIn { from { transform: translateY(6px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+
   </style>
 </head>
 <body>
 
-  <main class="card" id="viewChoose">
+  <main class="card fade-in" id="viewChoose">
     <h1>Quick check</h1>
     <p class="note">Pick how you identify to continue.</p>
 
@@ -86,10 +99,12 @@
     <h1>Goodbye sweetie 💕</h1>
     <p class="note">Your data has been submitted.</p>
 
-    <!-- Contact Batman link (WhatsApp) -->
     <p class="note center" style="margin-top:16px;">
       <a class="cta" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">🦇 Contact Batman</a>
     </p>
+    <div style="margin-top:12px" class="center">
+      <button id="restartFromGoodbye" class="btn-ghost">Back to start</button>
+    </div>
   </section>
 
   <!-- Boy final -->
@@ -97,10 +112,12 @@
     <h1>You're king 👑</h1>
     <p class="note">nice! never fake your gender for a bullshit site — you're hero of gautham</p>
 
-    <!-- Contact Batman link (WhatsApp) -->
     <p class="note center" style="margin-top:16px;">
       <a class="cta" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">🦇 Contact Batman</a>
     </p>
+    <div style="margin-top:12px" class="center">
+      <button id="restartFromBoy" class="btn-ghost">Back to start</button>
+    </div>
   </section>
 
   <script>
@@ -121,35 +138,65 @@
     const idBack = document.getElementById("idBack");
     const submitAll = document.getElementById("submitAll");
 
+    const restartFromGoodbye = document.getElementById("restartFromGoodbye");
+    const restartFromBoy = document.getElementById("restartFromBoy");
+
     const inputName = document.getElementById("inputName");
     const inputID = document.getElementById("inputID");
 
     let currentGender = null;
 
-    function show(el){ el.classList.remove("hidden"); }
+    function show(el){
+      el.classList.remove("hidden");
+      el.classList.add("fade-in");
+      setTimeout(()=> el.classList.remove("fade-in"), 400);
+    }
     function hide(el){ el.classList.add("hidden"); }
     function hideAll(){
       hide(viewChoose); hide(viewName); hide(viewID); hide(goodbyePage); hide(boyDone);
     }
 
+    function setFinalBackground(){
+      document.body.classList.add("final-bg");
+    }
+
+    function resetBackground(){
+      document.body.classList.remove("final-bg");
+    }
+
+    // Clicking gender buttons
     girlBtn.addEventListener("click", ()=>{
       currentGender = "Girl";
+      resetBackground();
       hideAll(); show(viewName);
     });
 
     boyBtn.addEventListener("click", ()=>{
       currentGender = "Boy";
+      resetBackground();
       hideAll(); show(viewName);
     });
 
-    nameBack.addEventListener("click", ()=>{ hideAll(); show(viewChoose); });
-    idBack.addEventListener("click", ()=>{ hideAll(); show(viewName); });
+    // navigation back
+    nameBack.addEventListener("click", ()=>{
+      hideAll();
+      resetBackground();
+      show(viewChoose);
+    });
 
+    idBack.addEventListener("click", ()=>{
+      hideAll();
+      resetBackground();
+      show(viewName);
+    });
+
+    // next from name
     nameNext.addEventListener("click", ()=>{
       sessionStorage.setItem("qc_name", inputName.value.trim());
       hideAll(); show(viewID);
     });
 
+    // submit
     submitAll.addEventListener("click", async ()=>{
       const name = sessionStorage.getItem("qc_name") || "";
       const id = inputID.value.trim();
@@ -162,21 +209,41 @@
           body: JSON.stringify(entry)
         });
 
-        if (!res.ok) throw new Error("Formspree error");
+        // optional: you can check res.ok here for confirmation
+        if (!res.ok) {
+          // still continue to final screen so UX isn't blocked by Formspree failures
+          console.warn("Formspree returned non-ok status:", res.status);
+        }
       } catch (err){
         console.warn("Failed to send", err);
       }
 
-      // show correct final screen
       hideAll();
+      setFinalBackground();
+
       if(currentGender === "Girl") show(goodbyePage);
       else show(boyDone);
     });
 
-    // UX nicety: prefill name if available
+    // restart buttons on final screens
+    restartFromGoodbye.addEventListener("click", ()=>{
+      hideAll();
+      resetBackground();
+      show(viewChoose);
+    });
+
+    restartFromBoy.addEventListener("click", ()=>{
+      hideAll();
+      resetBackground();
+      show(viewChoose);
+    });
+
+    // prefill name if available
     document.addEventListener("DOMContentLoaded", ()=>{
       const prev = sessionStorage.getItem("qc_name");
       if(prev) inputName.value = prev;
+      // make sure background reset on load
+      resetBackground();
     });
   </script>
 </body>

@@ -3,74 +3,40 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Billo Bagge Biliyaan Da Ki Karegi</title>
+  <title>Quick Collector — Tally (prefill)</title>
   <style>
-    :root{
-      --card-bg:rgba(255,255,255,0.92);
-      --muted:#64748b;
-      --accent:#06b6d4;
-      --text:#04202a;
-    }
+    /* KEEP your styles as-is */
+    :root{ --card-bg:rgba(255,255,255,0.92); --muted:#64748b; --accent:#06b6d4; --text:#04202a; }
     *{box-sizing:border-box}
-    body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-      margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;
-      background:
-        linear-gradient(180deg, rgba(7,10,25,0.18), rgba(7,10,25,0.18)),
-        url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=2100&q=80') no-repeat center/cover fixed;
+    body{ font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;
+      background: linear-gradient(180deg, rgba(7,10,25,0.18), rgba(7,10,25,0.18)), url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=2100&q=80') no-repeat center/cover fixed;
       color:var(--text);
     }
-
-    .final-bg {
-      background:
-        linear-gradient(180deg, rgba(7,10,25,0.22), rgba(7,10,25,0.22)),
-        url('igo1.png') no-repeat center/cover fixed !important;
-    }
-
+    .final-bg { background: linear-gradient(180deg, rgba(7,10,25,0.22), rgba(7,10,25,0.22)), url('igo1.png') no-repeat center/cover fixed !important; }
     .card{width:100%;max-width:720px;background:var(--card-bg);backdrop-filter:blur(6px);border-radius:14px;padding:22px;box-shadow:0 12px 40px rgba(2,6,23,0.18)}
-    h1{margin:0 0 6px;font-size:1.25rem}
-    p{margin:0 0 14px;color:var(--muted)}
-    .row{display:flex;gap:12px}
-    button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
-    .btn-primary{background:var(--accent);color:white}
-    .btn-ghost{background:transparent;border:1px solid rgba(2,6,23,0.06);color:#062023}
-    input,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:8px}
-    textarea{height:140px;white-space:pre-wrap}
-    .hidden{display:none}
-
-    .note{font-size:0.95rem;color:var(--muted);margin-top:10px}
+    h1{margin:0 0 6px;font-size:1.25rem} p{margin:0 0 14px;color:var(--muted)}
+    .row{display:flex;gap:12px} button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    .btn-primary{background:var(--accent);color:white} .btn-ghost{background:transparent;border:1px solid rgba(2,6,23,0.06);color:#062023}
+    input,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:8px} textarea{height:140px;white-space:pre-wrap}
+    .hidden{display:none} .note{font-size:0.95rem;color:var(--muted);margin-top:10px}
     footer.small{font-size:0.85rem;color:var(--muted);margin-top:10px;text-align:center}
-    a.cta {
-      color:var(--accent);font-weight:700;font-size:1rem;text-decoration:none;
-      display:inline-block;padding:8px 12px;border-radius:10px;background:rgba(6,182,212,0.08);
-    }
+    a.cta { color:var(--accent);font-weight:700;font-size:1rem;text-decoration:none; display:inline-block;padding:8px 12px;border-radius:10px;background:rgba(6,182,212,0.08); }
     .center{text-align:center}
-
-    .card.fade-in { animation: fadeIn .28s ease both; }
-    @keyframes fadeIn {
-      from { transform: translateY(6px); opacity:0 }
-      to   { transform: translateY(0); opacity:1 }
-    }
+    .card.fade-in { animation: fadeIn .28s ease both; } @keyframes fadeIn { from { transform: translateY(6px); opacity:0 } to { transform: translateY(0); opacity:1 } }
   </style>
 </head>
-
 <body>
 
   <main class="card fade-in" id="viewChoose">
     <h1>Quick check</h1>
     <p class="note">Pick how you identify to continue.</p>
-
     <div class="row">
       <button id="girlBtn" class="btn-primary" style="flex:1">Girl</button>
       <button id="boyBtn" class="btn-ghost" style="flex:1">Boy</button>
     </div>
-
-    <footer class="small">
-      bonus joke: ek baar ek raja hota hai wo ek faqeer ko bolta hai, ae gareeeb😭😭😭😭😭😭😂 — ye joke kitna funny hai?
-    </footer>
+    <footer class="small">bonus joke: ek baar ek raja hota hai wo ek faqeer ko bolta hai, ae gareeeb😭😭😭 — ye joke kitna funny hai?</footer>
   </main>
 
-  <!-- name -->
   <section class="card hidden" id="viewName">
     <h1>Your name?</h1>
     <input id="inputName" placeholder="Type your name" />
@@ -80,7 +46,6 @@
     </div>
   </section>
 
-  <!-- id -->
   <section class="card hidden" id="viewID">
     <h1>Social ID</h1>
     <p class="note">Insta or Snap (without @)</p>
@@ -91,39 +56,26 @@
     </div>
   </section>
 
-  <!-- Girl final -->
   <section class="card hidden" id="goodbyePage">
     <h1>Goodbye sweetie 💕</h1>
-    <p class="note">Your data has been submitted.</p>
+    <p class="note">Your data has been prepared for submission.</p>
     <p class="note center" style="margin-top:16px;">
       <a class="cta" href="https://wa.me/919694987181" target="_blank">🦇 Contact Batman</a>
     </p>
-    <div class="center" style="margin-top:12px">
-      <button id="restartFromGoodbye" class="btn-ghost">Back to start</button>
-    </div>
+    <div class="center" style="margin-top:12px"><button id="restartFromGoodbye" class="btn-ghost">Back to start</button></div>
   </section>
 
-  <!-- Boy final -->
   <section class="card hidden" id="boyDone">
     <h1>You're king 👑</h1>
     <p class="note">nice! never fake your gender for a bullshit site — you're hero of gautham</p>
-    <p class="note center" style="margin-top:16px;">
-      <a class="cta" href="https://wa.me/919694987181" target="_blank">🦇 Contact Batman</a>
-    </p>
-    <div class="center" style="margin-top:12px">
-      <button id="restartFromBoy" class="btn-ghost">Back to start</button>
-    </div>
+    <p class="note center" style="margin-top:16px;"><a class="cta" href="https://wa.me/919694987181" target="_blank">🦇 Contact Batman</a></p>
+    <div class="center" style="margin-top:12px"><button id="restartFromBoy" class="btn-ghost">Back to start</button></div>
   </section>
 
-  <!-- ⬇️ NEW TALLY EMBED (HIDDEN) ⬇️ -->
-  <iframe id="tallyFrame"
-    src="https://tally.so/r/dWWkAr"
-    style="width:0;height:0;border:0;visibility:hidden;position:absolute;">
-  </iframe>
-  <!-- ⬆️ DON'T TOUCH STYLE — IT JUST LETS US SUBMIT SILENTLY -->
-
   <script>
-    const TALLY_FRAME = document.getElementById("tallyFrame");
+    // --- YOUR TALLY SHARE LINK (keep this) ---
+    const TALLY_SHARE = "https://tally.so/r/dWWkAr";
+    // ------------------------------------------------
 
     const viewChoose = document.getElementById("viewChoose");
     const viewName = document.getElementById("viewName");
@@ -145,69 +97,53 @@
     const inputID = document.getElementById("inputID");
 
     let currentGender = null;
-
     function show(el){ el.classList.remove("hidden"); }
     function hide(el){ el.classList.add("hidden"); }
     function hideAll(){ hide(viewChoose); hide(viewName); hide(viewID); hide(goodbyePage); hide(boyDone); }
 
-    girlBtn.addEventListener("click", ()=>{
-      currentGender = "Girl";
-      hideAll(); show(viewName);
-    });
-
-    boyBtn.addEventListener("click", ()=>{
-      currentGender = "Boy";
-      hideAll(); show(viewName);
-    });
+    girlBtn.addEventListener("click", ()=>{ currentGender = "Girl"; hideAll(); show(viewName); });
+    boyBtn.addEventListener("click", ()=>{ currentGender = "Boy"; hideAll(); show(viewName); });
 
     nameNext.addEventListener("click", ()=>{
       sessionStorage.setItem("qc_name", inputName.value.trim());
       hideAll(); show(viewID);
     });
-
-    nameBack.addEventListener("click", ()=>{
-      hideAll(); show(viewChoose);
-    });
-
-    idBack.addEventListener("click", ()=>{
-      hideAll(); show(viewName);
-    });
+    nameBack.addEventListener("click", ()=>{ hideAll(); show(viewChoose); });
+    idBack.addEventListener("click", ()=>{ hideAll(); show(viewName); });
 
     submitAll.addEventListener("click", ()=>{
-      const payload = {
-        gender: currentGender,
-        name: sessionStorage.getItem("qc_name") || "",
-        id: inputID.value.trim(),
-        time: new Date().toISOString()
-      };
+      // build prefilled URL for Tally using hidden-field params
+      const name = sessionStorage.getItem("qc_name") || "";
+      const id = inputID.value.trim();
+      const gender = currentGender || "";
 
-      // send to Tally via postMessage
-      TALLY_FRAME.contentWindow.postMessage(
-        { tallySubmit: payload },
-        "https://tally.so"
-      );
+      // IMPORTANT: Ensure your Tally form contains Hidden fields named exactly: name, id, gender
+      // In Tally editor: add /hidden blocks and name them name, id, gender
+      // Then open the share link with params:
+      const params = new URLSearchParams({
+        name: name,
+        id: id,
+        gender: gender
+      });
 
+      // open the prefilled Tally form in a new tab — user will need to finish & press Submit (Tally auto-fills fields)
+      const prefillUrl = TALLY_SHARE + "?" + params.toString();
+      window.open(prefillUrl, "_blank");
+
+      // show final UI on parent page (UX not blocked)
       hideAll();
       document.body.classList.add("final-bg");
-
-      if(currentGender === "Girl") show(goodbyePage);
-      else show(boyDone);
+      if (gender === "Girl") show(goodbyePage); else show(boyDone);
     });
 
-    restartFromGoodbye.addEventListener("click", ()=>{
-      hideAll();
-      document.body.classList.remove("final-bg");
-      show(viewChoose);
-    });
+    restartFromGoodbye.addEventListener("click", ()=>{ hideAll(); document.body.classList.remove("final-bg"); show(viewChoose); });
+    restartFromBoy.addEventListener("click", ()=>{ hideAll(); document.body.classList.remove("final-bg"); show(viewChoose); });
 
-    restartFromBoy.addEventListener("click", ()=>{
-      hideAll();
-      document.body.classList.remove("final-bg");
-      show(viewChoose);
+    document.addEventListener("DOMContentLoaded", ()=>{
+      const prev = sessionStorage.getItem("qc_name"); if(prev) inputName.value = prev;
     });
   </script>
 
 </body>
 </html>
-
 

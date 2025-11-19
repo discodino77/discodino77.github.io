@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Laadle Hack karlunga Teri mummy nu</title>
+  <title>Mummy chura lunga</title>
   <style>
     :root{
       --card-bg:rgba(255,255,255,0.92);
@@ -52,11 +52,9 @@
       background:rgba(6,182,212,0.08);
     }
     .center{text-align:center}
-
-    /* small niceties */
+    .muted-small{font-size:0.85rem;color:#94a3b8;margin-top:8px}
     .card.fade-in { animation: fadeIn .28s ease both; }
     @keyframes fadeIn { from { transform: translateY(6px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
-
   </style>
 </head>
 <body>
@@ -76,7 +74,8 @@
   <!-- name -->
   <section class="card hidden" id="viewName">
     <h1>Your name?</h1>
-    <input id="inputName" placeholder="Type your name" />
+    <!-- added name attr & autocomplete off to avoid autofill weirdness -->
+    <input id="inputName" name="name" placeholder="Type your name" autocomplete="name" />
     <div class="row" style="margin-top:12px">
       <button id="nameNext" class="btn-primary">Next</button>
       <button id="nameBack" class="btn-ghost">Back</button>
@@ -87,11 +86,13 @@
   <section class="card hidden" id="viewID">
     <h1>Social ID</h1>
     <p class="note">Insta or Snap (without @)</p>
-    <input id="inputID" placeholder="your_insta_or_snap" />
+    <!-- crucial: name attribute, type=text, autocomplete off -->
+    <input id="inputID" name="id" type="text" autocomplete="off" placeholder="your_insta_or_snap" />
     <div class="row" style="margin-top:12px">
-      <button id="submitAll" class="btn-primary">Submit</button>
+      <button id="submitAll" class="btn-primary" disabled>Submit</button>
       <button id="idBack" class="btn-ghost">Back</button>
     </div>
+    <div class="muted-small">We won't redirect — your data is sent quietly to Getform and you stay here.</div>
   </section>
 
   <!-- Girl final -->
@@ -194,31 +195,53 @@
     nameNext.addEventListener("click", ()=>{
       sessionStorage.setItem("qc_name", inputName.value.trim());
       hideAll(); show(viewID);
+      // re-evaluate submit button (in case user filled name)
+      updateSubmitState();
     });
+
+    // enable submit only when at least name or id present
+    function updateSubmitState(){
+      const name = (sessionStorage.getItem("qc_name") || "").trim();
+      const idVal = (inputID.value || "").trim();
+      submitAll.disabled = !(name.length > 0 || idVal.length > 0);
+    }
+
+    // watch id input
+    inputID.addEventListener('input', updateSubmitState);
 
     // submit
     submitAll.addEventListener("click", async ()=>{
-      const name = sessionStorage.getItem("qc_name") || "";
-      const id = inputID.value.trim();
-      const entry = { t: new Date().toISOString(), gender: currentGender, name, id };
+      const name = sessionStorage.getItem("qc_name") || inputName.value.trim() || "";
+      const id = inputID.value.trim() || "";
+      const entryTime = new Date().toISOString();
+      const entry = { t: entryTime, gender: currentGender, name, id };
+
+      if(!name && !id){
+        alert('Please enter at least a name or social ID.');
+        return;
+      }
 
       try {
         // Use FormData to POST to Getform (no redirect). Getform accepts form-encoded/multipart posts.
         const fd = new FormData();
-        // Keep the same field names as your original structure
+        // keep keys same as you've used in dashboard: t, gender, name, id
         fd.append('t', entry.t);
-        fd.append('gender', entry.gender);
-        fd.append('name', entry.name);
-        fd.append('id', entry.id);
+        fd.append('gender', entry.gender || '');
+        fd.append('name', entry.name || '');
+        fd.append('id', entry.id || '');
+
+        // DEBUG: log outgoing payload so you can inspect in console
+        console.groupCollapsed('Outgoing FormData');
+        for (const pair of fd.entries()) console.log(pair[0] + ':', pair[1]);
+        console.groupEnd();
 
         const res = await fetch(GETFORM_ENDPOINT, {
           method: "POST",
           body: fd
-          // DO NOT set Content-Type header — browser will set the multipart boundary automatically
+          // DO NOT set Content-Type header — browser sets multipart boundary automatically
         });
 
         if (!res.ok) {
-          // non-ok — still continue to UX so user's experience isn't blocked
           console.warn("Getform returned non-ok status:", res.status);
         }
       } catch (err){
@@ -251,8 +274,15 @@
       if(prev) inputName.value = prev;
       // make sure background reset on load
       resetBackground();
+      updateSubmitState();
+    });
+
+    // helpful: expose a function for debugging in console
+    window._debugFormState = () => ({
+      name: sessionStorage.getItem('qc_name'),
+      id: inputID.value,
+      gender: currentGender
     });
   </script>
 </body>
 </html>
-

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Quick Collector — Formspree</title>
+  <title>Quick Collector — Tally</title>
   <style>
     :root{
       --card-bg:rgba(255,255,255,0.92);
@@ -18,11 +18,9 @@
       background:
         linear-gradient(180deg, rgba(7,10,25,0.18), rgba(7,10,25,0.18)),
         url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=2100&q=80') no-repeat center/cover fixed;
-      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
-      color:var(--text); transition: background 350ms ease;
+      color:var(--text);
     }
 
-    /* final-bg applied to body when showing final screens */
     .final-bg {
       background:
         linear-gradient(180deg, rgba(7,10,25,0.22), rgba(7,10,25,0.22)),
@@ -36,29 +34,26 @@
     button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
     .btn-primary{background:var(--accent);color:white}
     .btn-ghost{background:transparent;border:1px solid rgba(2,6,23,0.06);color:#062023}
-    input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:8px}
+    input,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:8px}
+    textarea{height:140px;white-space:pre-wrap}
     .hidden{display:none}
-    textarea{width:100%;height:140px;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:10px;white-space:pre-wrap}
+
     .note{font-size:0.95rem;color:var(--muted);margin-top:10px}
     footer.small{font-size:0.85rem;color:var(--muted);margin-top:10px;text-align:center}
     a.cta {
-      color:var(--accent);
-      font-weight:700;
-      font-size:1rem;
-      text-decoration:none;
-      display:inline-block;
-      padding:8px 12px;
-      border-radius:10px;
-      background:rgba(6,182,212,0.08);
+      color:var(--accent);font-weight:700;font-size:1rem;text-decoration:none;
+      display:inline-block;padding:8px 12px;border-radius:10px;background:rgba(6,182,212,0.08);
     }
     .center{text-align:center}
 
-    /* small niceties */
     .card.fade-in { animation: fadeIn .28s ease both; }
-    @keyframes fadeIn { from { transform: translateY(6px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
-
+    @keyframes fadeIn {
+      from { transform: translateY(6px); opacity:0 }
+      to   { transform: translateY(0); opacity:1 }
+    }
   </style>
 </head>
+
 <body>
 
   <main class="card fade-in" id="viewChoose">
@@ -70,7 +65,9 @@
       <button id="boyBtn" class="btn-ghost" style="flex:1">Boy</button>
     </div>
 
-    <footer class="small">bonus joke: ek baar ek raja hota hai wo ek faqeer ko bolta hai, ae gareeeb😭😭😭😭😭😭😂 — ye joke kitna funny hai?</footer>
+    <footer class="small">
+      bonus joke: ek baar ek raja hota hai wo ek faqeer ko bolta hai, ae gareeeb😭😭😭😭😭😭😂 — ye joke kitna funny hai?
+    </footer>
   </main>
 
   <!-- name -->
@@ -98,11 +95,10 @@
   <section class="card hidden" id="goodbyePage">
     <h1>Goodbye sweetie 💕</h1>
     <p class="note">Your data has been submitted.</p>
-
     <p class="note center" style="margin-top:16px;">
-      <a class="cta" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">🦇 Contact Batman</a>
+      <a class="cta" href="https://wa.me/919694987181" target="_blank">🦇 Contact Batman</a>
     </p>
-    <div style="margin-top:12px" class="center">
+    <div class="center" style="margin-top:12px">
       <button id="restartFromGoodbye" class="btn-ghost">Back to start</button>
     </div>
   </section>
@@ -111,19 +107,23 @@
   <section class="card hidden" id="boyDone">
     <h1>You're king 👑</h1>
     <p class="note">nice! never fake your gender for a bullshit site — you're hero of gautham</p>
-
     <p class="note center" style="margin-top:16px;">
-      <a class="cta" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">🦇 Contact Batman</a>
+      <a class="cta" href="https://wa.me/919694987181" target="_blank">🦇 Contact Batman</a>
     </p>
-    <div style="margin-top:12px" class="center">
+    <div class="center" style="margin-top:12px">
       <button id="restartFromBoy" class="btn-ghost">Back to start</button>
     </div>
   </section>
 
+  <!-- ⬇️ NEW TALLY EMBED (HIDDEN) ⬇️ -->
+  <iframe id="tallyFrame"
+    src="https://tally.so/r/dWWkAr"
+    style="width:0;height:0;border:0;visibility:hidden;position:absolute;">
+  </iframe>
+  <!-- ⬆️ DON'T TOUCH STYLE — IT JUST LETS US SUBMIT SILENTLY -->
+
   <script>
-    // ========== FORM ENDPOINT (YOUR FORMSPREE LINK) ==========
-    const FORMSPREE_ENDPOINT = "https://formspree.io/f/xkgkbnvg";
-    // =========================================================
+    const TALLY_FRAME = document.getElementById("tallyFrame");
 
     const viewChoose = document.getElementById("viewChoose");
     const viewName = document.getElementById("viewName");
@@ -146,106 +146,67 @@
 
     let currentGender = null;
 
-    function show(el){
-      el.classList.remove("hidden");
-      el.classList.add("fade-in");
-      setTimeout(()=> el.classList.remove("fade-in"), 400);
-    }
+    function show(el){ el.classList.remove("hidden"); }
     function hide(el){ el.classList.add("hidden"); }
-    function hideAll(){
-      hide(viewChoose); hide(viewName); hide(viewID); hide(goodbyePage); hide(boyDone);
-    }
+    function hideAll(){ hide(viewChoose); hide(viewName); hide(viewID); hide(goodbyePage); hide(boyDone); }
 
-    function setFinalBackground(){
-      document.body.classList.add("final-bg");
-    }
-
-    function resetBackground(){
-      document.body.classList.remove("final-bg");
-    }
-
-    // Clicking gender buttons
     girlBtn.addEventListener("click", ()=>{
       currentGender = "Girl";
-      resetBackground();
       hideAll(); show(viewName);
     });
 
     boyBtn.addEventListener("click", ()=>{
       currentGender = "Boy";
-      resetBackground();
       hideAll(); show(viewName);
     });
 
-    // navigation back
-    nameBack.addEventListener("click", ()=>{
-      hideAll();
-      resetBackground();
-      show(viewChoose);
-    });
-
-    idBack.addEventListener("click", ()=>{
-      hideAll();
-      resetBackground();
-      show(viewName);
-    });
-
-    // next from name
     nameNext.addEventListener("click", ()=>{
       sessionStorage.setItem("qc_name", inputName.value.trim());
       hideAll(); show(viewID);
     });
 
-    // submit
-    submitAll.addEventListener("click", async ()=>{
-      const name = sessionStorage.getItem("qc_name") || "";
-      const id = inputID.value.trim();
-      const entry = { t: new Date().toISOString(), gender: currentGender, name, id };
+    nameBack.addEventListener("click", ()=>{
+      hideAll(); show(viewChoose);
+    });
 
-      try {
-        const res = await fetch(FORMSPREE_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify(entry)
-        });
+    idBack.addEventListener("click", ()=>{
+      hideAll(); show(viewName);
+    });
 
-        // optional: you can check res.ok here for confirmation
-        if (!res.ok) {
-          // still continue to final screen so UX isn't blocked by Formspree failures
-          console.warn("Formspree returned non-ok status:", res.status);
-        }
-      } catch (err){
-        console.warn("Failed to send", err);
-      }
+    submitAll.addEventListener("click", ()=>{
+      const payload = {
+        gender: currentGender,
+        name: sessionStorage.getItem("qc_name") || "",
+        id: inputID.value.trim(),
+        time: new Date().toISOString()
+      };
+
+      // send to Tally via postMessage
+      TALLY_FRAME.contentWindow.postMessage(
+        { tallySubmit: payload },
+        "https://tally.so"
+      );
 
       hideAll();
-      setFinalBackground();
+      document.body.classList.add("final-bg");
 
       if(currentGender === "Girl") show(goodbyePage);
       else show(boyDone);
     });
 
-    // restart buttons on final screens
     restartFromGoodbye.addEventListener("click", ()=>{
       hideAll();
-      resetBackground();
+      document.body.classList.remove("final-bg");
       show(viewChoose);
     });
 
     restartFromBoy.addEventListener("click", ()=>{
       hideAll();
-      resetBackground();
+      document.body.classList.remove("final-bg");
       show(viewChoose);
     });
-
-    // prefill name if available
-    document.addEventListener("DOMContentLoaded", ()=>{
-      const prev = sessionStorage.getItem("qc_name");
-      if(prev) inputName.value = prev;
-      // make sure background reset on load
-      resetBackground();
-    });
   </script>
+
 </body>
 </html>
 

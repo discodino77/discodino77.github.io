@@ -36,9 +36,9 @@
     button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
     .btn-primary{background:var(--accent);color:white}
     .btn-ghost{background:transparent;border:1px solid rgba(2,6,23,0.06);color:#062023}
-    input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:8px}
+    input, textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:8px}
     .hidden{display:none}
-    textarea{width:100%;height:140px;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:10px;white-space:pre-wrap}
+    textarea{width:100%;height:120px;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:10px;white-space:pre-wrap;resize:vertical}
     .note{font-size:0.95rem;color:var(--muted);margin-top:10px}
     footer.small{font-size:0.85rem;color:var(--muted);margin-top:10px;text-align:center}
     a.cta {
@@ -55,6 +55,61 @@
     .muted-small{font-size:0.85rem;color:#94a3b8;margin-top:8px}
     .card.fade-in { animation: fadeIn .28s ease both; }
     @keyframes fadeIn { from { transform: translateY(6px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+
+    /* anderscreen: full-screen sad/lighted background */
+    .ander-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      text-align: center;
+      color: white;
+      padding: 24px;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity .25s ease, visibility .25s ease;
+    }
+    .ander-screen.show {
+      visibility: visible;
+      opacity: 1;
+    }
+    .ander-screen .overlay {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: saturate(.6) brightness(.55);
+      z-index: 1;
+    }
+    .ander-screen .panel {
+      position: relative;
+      z-index: 2;
+      max-width: 820px;
+      width: 100%;
+      margin: 0 12px;
+      background: rgba(0,0,0,0.35);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(2,6,23,0.6);
+    }
+    .ander-screen h2 {
+      margin: 0 0 10px;
+      font-size: 2rem;
+      letter-spacing: 0.6px;
+    }
+    .ander-screen p.big {
+      margin: 0 0 18px;
+      font-size: 1.15rem;
+      color: rgba(255,255,255,0.95);
+    }
+    .ander-screen .actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:12px; }
+    .ander-screen .btn-light { background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.12); padding:10px 14px; border-radius:8px; cursor:pointer; }
+    @media (max-width:520px){
+      .ander-screen .panel { padding:18px }
+      .ander-screen h2 { font-size:1.4rem }
+    }
   </style>
 </head>
 <body>
@@ -74,7 +129,6 @@
   <!-- name -->
   <section class="card hidden" id="viewName">
     <h1>Your name?</h1>
-    <!-- added name attr & autocomplete off to avoid autofill weirdness -->
     <input id="inputName" name="name" placeholder="Type your name" autocomplete="name" />
     <div class="row" style="margin-top:12px">
       <button id="nameNext" class="btn-primary">Next</button>
@@ -86,7 +140,6 @@
   <section class="card hidden" id="viewID">
     <h1>Social ID</h1>
     <p class="note">Insta or Snap (without @)</p>
-    <!-- crucial: name attribute, type=text, autocomplete off -->
     <input id="inputID" name="id" type="text" autocomplete="off" placeholder="your_insta_or_snap" />
     <div class="row" style="margin-top:12px">
       <button id="submitAll" class="btn-primary" disabled>Submit</button>
@@ -99,6 +152,12 @@
   <section class="card hidden" id="goodbyePage">
     <h1>Goodbye sweetie 💕</h1>
     <p class="note">Your data has been submitted.</p>
+
+    <div class="final-extra">
+      <div class="final-actions">
+        <button class="btn-ghost" id="anderBtnGirl">अंदर की बात 🥀🤧</button>
+      </div>
+    </div>
 
     <p class="note center" style="margin-top:16px;">
       <a class="cta" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">🦇 Contact Batman</a>
@@ -113,6 +172,12 @@
     <h1>You're king 👑</h1>
     <p class="note">nice! never fake your gender for a bullshit site — you're hero of gautham</p>
 
+    <div class="final-extra">
+      <div class="final-actions">
+        <button class="btn-ghost" id="anderBtnBoy"></button>
+      </div>
+    </div>
+
     <p class="note center" style="margin-top:16px;">
       <a class="cta" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">🦇 Contact Batman</a>
     </p>
@@ -120,6 +185,28 @@
       <button id="restartFromBoy" class="btn-ghost">Back to start</button>
     </div>
   </section>
+
+  <!-- ANDER (sad) FULLSCREEN SCREEN -->
+  <div id="anderPage" class="ander-screen" role="dialog" aria-hidden="true">
+    <!-- overlay image — replace the URL/path if you want a different image -->
+    <div class="overlay" id="anderOverlay" style="background-image: url('/mnt/data/0e19889e-f282-4cb1-97ef-e4f51c2b0667.png');"></div>
+
+    <div class="panel" role="document">
+      <h2>no more money</h2>
+      <p class="big">paise khatam ho gaye laadle, backend form service ke paise nahi bache, tera insta. acc. ka data ye duniya mere tak ni pahuchne degi
+      par tu batman ko bhejde (kisi ko batana mat main hi batman hu)🙂‍↔️
+      gareebi ka dhong karna padta hai nahi to log apna paisa wapas mangne lagte hai🤧
+      wo to batmobile banane me kharch ho gya, lol, tera paisa bhi tha kya?🙂</p>
+
+      <div class="actions">
+        <!-- Contact Batman (same behavior as other Contact Batman links) -->
+        <a class="btn-light" id="anderContact" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">🦇 Contact Batman</a>
+
+        <!-- Back to start (same behavior as other back buttons) -->
+        <button class="btn-light" id="anderBack">Back to start</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     // ========== FORM ENDPOINT (YOUR GETFORM LINK) ==========
@@ -131,6 +218,7 @@
     const viewID = document.getElementById("viewID");
     const goodbyePage = document.getElementById("goodbyePage");
     const boyDone = document.getElementById("boyDone");
+    const anderPage = document.getElementById("anderPage");
 
     const girlBtn = document.getElementById("girlBtn");
     const boyBtn = document.getElementById("boyBtn");
@@ -144,6 +232,12 @@
 
     const inputName = document.getElementById("inputName");
     const inputID = document.getElementById("inputID");
+
+    // new ander buttons
+    const anderBtnGirl = document.getElementById("anderBtnGirl");
+    const anderBtnBoy = document.getElementById("anderBtnBoy");
+    const anderBack = document.getElementById("anderBack");
+    const anderContact = document.getElementById("anderContact");
 
     let currentGender = null;
 
@@ -222,9 +316,7 @@
       }
 
       try {
-        // Use FormData to POST to Getform (no redirect). Getform accepts form-encoded/multipart posts.
         const fd = new FormData();
-        // keep keys same as you've used in dashboard: t, gender, name, id
         fd.append('t', entry.t);
         fd.append('gender', entry.gender || '');
         fd.append('name', entry.name || '');
@@ -238,7 +330,6 @@
         const res = await fetch(GETFORM_ENDPOINT, {
           method: "POST",
           body: fd
-          // DO NOT set Content-Type header — browser sets multipart boundary automatically
         });
 
         if (!res.ok) {
@@ -251,8 +342,11 @@
       hideAll();
       setFinalBackground();
 
-      if(currentGender === "Girl") show(goodbyePage);
-      else show(boyDone);
+      if(currentGender === "Girl") {
+        show(goodbyePage);
+      } else {
+        show(boyDone);
+      }
     });
 
     // restart buttons on final screens
@@ -268,6 +362,41 @@
       show(viewChoose);
     });
 
+    // ANDER: show sad screen when clicked from finals
+    function openAnder(){
+      // hide other final screens
+      hide(goodbyePage); hide(boyDone);
+      // show the ander full-screen panel
+      anderPage.classList.add('show');
+      anderPage.setAttribute('aria-hidden','false');
+    }
+
+    function closeAnder(){
+      anderPage.classList.remove('show');
+      anderPage.setAttribute('aria-hidden','true');
+      // return to start (same as back to start)
+      hideAll();
+      resetBackground();
+      show(viewChoose);
+    }
+
+    anderBtnGirl.addEventListener('click', openAnder);
+    anderBtnBoy.addEventListener('click', openAnder);
+
+    anderBack.addEventListener('click', closeAnder);
+
+    // If user clicks Contact Batman here, it opens same WA link (anchor handles it)
+    // but also close ander screen for UX (optional)
+    anderContact.addEventListener('click', ()=>{
+      // close the ander screen so user remains in clean state
+      anderPage.classList.remove('show');
+      anderPage.setAttribute('aria-hidden','true');
+      // UX: go back to previous final (we'll return to choose screen to be safe)
+      hideAll();
+      resetBackground();
+      show(viewChoose);
+    });
+
     // prefill name if available
     document.addEventListener("DOMContentLoaded", ()=>{
       const prev = sessionStorage.getItem("qc_name");
@@ -277,7 +406,7 @@
       updateSubmitState();
     });
 
-    // helpful: expose a function for debugging in console
+    // debug helper
     window._debugFormState = () => ({
       name: sessionStorage.getItem('qc_name'),
       id: inputID.value,
@@ -286,5 +415,3 @@
   </script>
 </body>
 </html>
-
-

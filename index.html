@@ -3,153 +3,255 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Quick Collector — Tally only</title>
-  <meta name="robots" content="noindex,nofollow" />
+  <title>Quick Collector — Getform</title>
   <style>
-    :root{--bg:#f6f8fb;--card:#ffffff;--accent:#06b6d4;--muted:#64748b;--text:#04202a}
-    *{box-sizing:border-box} html,body{height:100%} body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--text);padding:20px}
-    .card{width:100%;max-width:760px;background:var(--card);border-radius:12px;padding:20px;box-shadow:0 12px 30px rgba(6,22,40,0.06)}
-    h1{margin:0 0 8px;font-size:1.25rem} p{margin:0 0 12px;color:var(--muted)}
-    .row{display:flex;gap:10px} button{padding:10px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
-    .btn-primary{background:var(--accent);color:#fff} .btn-ghost{background:transparent;border:1px solid rgba(6,22,40,0.06);color:var(--text)}
-    input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(6,22,40,0.06);margin-top:8px}
+    :root{
+      --card-bg:rgba(255,255,255,0.92);
+      --muted:#64748b;
+      --accent:#06b6d4;
+      --text:#04202a;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;
+      background:
+        linear-gradient(180deg, rgba(7,10,25,0.18), rgba(7,10,25,0.18)),
+        url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=2100&q=80') no-repeat center/cover fixed;
+      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+      color:var(--text); transition: background 350ms ease;
+    }
+
+    /* final-bg applied to body when showing final screens */
+    .final-bg {
+      background:
+        linear-gradient(180deg, rgba(7,10,25,0.22), rgba(7,10,25,0.22)),
+        url('igo1.png') no-repeat center/cover fixed !important;
+    }
+
+    .card{width:100%;max-width:720px;background:var(--card-bg);backdrop-filter:blur(6px);border-radius:14px;padding:22px;box-shadow:0 12px 40px rgba(2,6,23,0.18)}
+    h1{margin:0 0 6px;font-size:1.25rem}
+    p{margin:0 0 14px;color:var(--muted)}
+    .row{display:flex;gap:12px}
+    button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    .btn-primary{background:var(--accent);color:white}
+    .btn-ghost{background:transparent;border:1px solid rgba(2,6,23,0.06);color:#062023}
+    input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:8px}
     .hidden{display:none}
-    .center{text-align:center} .small{font-size:0.9rem;color:var(--muted);margin-top:10px}
-    /* modal */
-    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;pointer-events:none;transition:opacity .2s ease}
-    .modal-bg.show{opacity:1;pointer-events:auto}
-    .modal{width:90%;max-width:900px;height:80vh;background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
-    .modal .head{padding:10px 12px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
-    .modal iframe{flex:1;border:0;width:100%}
-    @media (max-width:640px){ .modal{height:92vh} .row{flex-direction:column} }
+    textarea{width:100%;height:140px;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:10px;white-space:pre-wrap}
+    .note{font-size:0.95rem;color:var(--muted);margin-top:10px}
+    footer.small{font-size:0.85rem;color:var(--muted);margin-top:10px;text-align:center}
+    a.cta {
+      color:var(--accent);
+      font-weight:700;
+      font-size:1rem;
+      text-decoration:none;
+      display:inline-block;
+      padding:8px 12px;
+      border-radius:10px;
+      background:rgba(6,182,212,0.08);
+    }
+    .center{text-align:center}
+
+    /* small niceties */
+    .card.fade-in { animation: fadeIn .28s ease both; }
+    @keyframes fadeIn { from { transform: translateY(6px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+
   </style>
 </head>
 <body>
-  <div class="card" id="mainUI">
+
+  <main class="card fade-in" id="viewChoose">
     <h1>Quick check</h1>
-    <p class="small">This version sends everything only to your Tally form. Make sure your Tally form has Hidden fields named <code>name</code>, <code>id</code>, and <code>gender</code>.</p>
+    <p class="note">Pick how you identify to continue.</p>
 
-    <div id="stepChoose" class="step">
-      <p class="note">Pick how you identify:</p>
-      <div class="row" style="margin-top:10px">
-        <button id="girlBtn" class="btn-primary" style="flex:1">Girl</button>
-        <button id="boyBtn" class="btn-ghost" style="flex:1">Boy</button>
-      </div>
+    <div class="row">
+      <button id="girlBtn" class="btn-primary" style="flex:1">Girl</button>
+      <button id="boyBtn" class="btn-ghost" style="flex:1">Boy</button>
     </div>
 
-    <div id="stepName" class="step hidden" style="margin-top:12px">
-      <h2 style="margin:0 0 8px">Your name?</h2>
-      <input id="inputName" placeholder="Type your name" autocomplete="name" />
-      <div class="row" style="margin-top:12px">
-        <button id="nameNext" class="btn-primary">Next</button>
-        <button id="nameBack" class="btn-ghost">Back</button>
-      </div>
-    </div>
+    <footer class="small">bonus joke: ek baar ek raja hota hai wo ek faqeer ko bolta hai, ae gareeeb😭😭😭😭😭😭😂 — ye joke kitna funny hai?</footer>
+  </main>
 
-    <div id="stepID" class="step hidden" style="margin-top:12px">
-      <h2 style="margin:0 0 8px">Social ID</h2>
-      <p class="small">Insta or Snap (without @)</p>
-      <input id="inputID" placeholder="your_insta_or_snap" autocomplete="username" />
-      <div class="row" style="margin-top:12px">
-        <button id="submitAll" class="btn-primary">Open Tally (prefilled)</button>
-        <button id="idBack" class="btn-ghost">Back</button>
-      </div>
+  <!-- name -->
+  <section class="card hidden" id="viewName">
+    <h1>Your name?</h1>
+    <input id="inputName" placeholder="Type your name" />
+    <div class="row" style="margin-top:12px">
+      <button id="nameNext" class="btn-primary">Next</button>
+      <button id="nameBack" class="btn-ghost">Back</button>
     </div>
+  </section>
 
-    <p class="small center" style="margin-top:14px">Tally form used: <strong id="tallyInfo"></strong></p>
-  </div>
-
-  <!-- Modal with embedded Tally -->
-  <div id="modal" class="modal-bg" role="dialog" aria-hidden="true">
-    <div class="modal" role="document">
-      <div class="head">
-        <div style="font-weight:700">Tally — confirm & submit</div>
-        <div><button id="closeModal" class="btn-ghost">Close</button></div>
-      </div>
-      <iframe id="tallyFrame" src="" title="Tally form"></iframe>
+  <!-- id -->
+  <section class="card hidden" id="viewID">
+    <h1>Social ID</h1>
+    <p class="note">Insta or Snap (without @)</p>
+    <input id="inputID" placeholder="your_insta_or_snap" />
+    <div class="row" style="margin-top:12px">
+      <button id="submitAll" class="btn-primary">Submit</button>
+      <button id="idBack" class="btn-ghost">Back</button>
     </div>
-  </div>
+  </section>
+
+  <!-- Girl final -->
+  <section class="card hidden" id="goodbyePage">
+    <h1>Goodbye sweetie 💕</h1>
+    <p class="note">Your data has been submitted.</p>
+
+    <p class="note center" style="margin-top:16px;">
+      <a class="cta" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">🦇 Contact Batman</a>
+    </p>
+    <div style="margin-top:12px" class="center">
+      <button id="restartFromGoodbye" class="btn-ghost">Back to start</button>
+    </div>
+  </section>
+
+  <!-- Boy final -->
+  <section class="card hidden" id="boyDone">
+    <h1>You're king 👑</h1>
+    <p class="note">nice! never fake your gender for a bullshit site — you're hero of gautham</p>
+
+    <p class="note center" style="margin-top:16px;">
+      <a class="cta" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">🦇 Contact Batman</a>
+    </p>
+    <div style="margin-top:12px" class="center">
+      <button id="restartFromBoy" class="btn-ghost">Back to start</button>
+    </div>
+  </section>
 
   <script>
-    // ---------- CONFIG ----------
-    // Use the embed URL (not the /r/ share). Embed URL pattern: https://tally.so/embed/<formId>
-    const TALLY_EMBED_BASE = "https://tally.so/embed/dWWkAr"; // <- your form embed
-    // ----------------------------
+    // ========== FORM ENDPOINT (YOUR GETFORM LINK) ==========
+    const GETFORM_ENDPOINT = "https://getform.io/f/apjzwyda";
+    // =====================================================
 
-    // UI elements
-    const stepChoose = document.getElementById('stepChoose');
-    const stepName = document.getElementById('stepName');
-    const stepID = document.getElementById('stepID');
+    const viewChoose = document.getElementById("viewChoose");
+    const viewName = document.getElementById("viewName");
+    const viewID = document.getElementById("viewID");
+    const goodbyePage = document.getElementById("goodbyePage");
+    const boyDone = document.getElementById("boyDone");
 
-    const girlBtn = document.getElementById('girlBtn');
-    const boyBtn = document.getElementById('boyBtn');
-    const nameNext = document.getElementById('nameNext');
-    const nameBack = document.getElementById('nameBack');
-    const idBack = document.getElementById('idBack');
-    const submitAll = document.getElementById('submitAll');
+    const girlBtn = document.getElementById("girlBtn");
+    const boyBtn = document.getElementById("boyBtn");
+    const nameNext = document.getElementById("nameNext");
+    const nameBack = document.getElementById("nameBack");
+    const idBack = document.getElementById("idBack");
+    const submitAll = document.getElementById("submitAll");
 
-    const inputName = document.getElementById('inputName');
-    const inputID = document.getElementById('inputID');
-    const tallyInfo = document.getElementById('tallyInfo');
+    const restartFromGoodbye = document.getElementById("restartFromGoodbye");
+    const restartFromBoy = document.getElementById("restartFromBoy");
 
-    const modal = document.getElementById('modal');
-    const closeModal = document.getElementById('closeModal');
-    const tallyFrame = document.getElementById('tallyFrame');
+    const inputName = document.getElementById("inputName");
+    const inputID = document.getElementById("inputID");
 
-    let gender = null;
+    let currentGender = null;
 
-    function showStep(showEl){ [stepChoose,stepName,stepID].forEach(el=>el.classList.add('hidden')); showEl.classList.remove('hidden'); }
-    function openModalWithURL(url){
-      tallyFrame.src = url;
-      modal.classList.add('show');
-      modal.setAttribute('aria-hidden','false');
+    function show(el){
+      el.classList.remove("hidden");
+      el.classList.add("fade-in");
+      setTimeout(()=> el.classList.remove("fade-in"), 400);
     }
-    function closeModalFn(){
-      modal.classList.remove('show');
-      modal.setAttribute('aria-hidden','true');
-      tallyFrame.src = 'about:blank';
+    function hide(el){ el.classList.add("hidden"); }
+    function hideAll(){
+      hide(viewChoose); hide(viewName); hide(viewID); hide(goodbyePage); hide(boyDone);
     }
 
-    girlBtn.addEventListener('click', ()=>{ gender = 'Girl'; showStep(stepName); });
-    boyBtn.addEventListener('click', ()=>{ gender = 'Boy'; showStep(stepName); });
+    function setFinalBackground(){
+      document.body.classList.add("final-bg");
+    }
 
-    nameBack.addEventListener('click', ()=> showStep(stepChoose));
-    idBack.addEventListener('click', ()=> showStep(stepName));
+    function resetBackground(){
+      document.body.classList.remove("final-bg");
+    }
 
-    nameNext.addEventListener('click', ()=>{
-      sessionStorage.setItem('qc_name', inputName.value.trim());
-      showStep(stepID);
+    // Clicking gender buttons
+    girlBtn.addEventListener("click", ()=>{
+      currentGender = "Girl";
+      resetBackground();
+      hideAll(); show(viewName);
     });
 
-    submitAll.addEventListener('click', ()=>{
-      const name = sessionStorage.getItem('qc_name') || inputName.value.trim() || '';
-      const id = inputID.value.trim() || '';
-      if(!name && !id){
-        alert('enter at least a name or id');
-        return;
+    boyBtn.addEventListener("click", ()=>{
+      currentGender = "Boy";
+      resetBackground();
+      hideAll(); show(viewName);
+    });
+
+    // navigation back
+    nameBack.addEventListener("click", ()=>{
+      hideAll();
+      resetBackground();
+      show(viewChoose);
+    });
+
+    idBack.addEventListener("click", ()=>{
+      hideAll();
+      resetBackground();
+      show(viewName);
+    });
+
+    // next from name
+    nameNext.addEventListener("click", ()=>{
+      sessionStorage.setItem("qc_name", inputName.value.trim());
+      hideAll(); show(viewID);
+    });
+
+    // submit
+    submitAll.addEventListener("click", async ()=>{
+      const name = sessionStorage.getItem("qc_name") || "";
+      const id = inputID.value.trim();
+      const entry = { t: new Date().toISOString(), gender: currentGender, name, id };
+
+      try {
+        // Use FormData to POST to Getform (no redirect). Getform accepts form-encoded/multipart posts.
+        const fd = new FormData();
+        // Keep the same field names as your original structure
+        fd.append('t', entry.t);
+        fd.append('gender', entry.gender);
+        fd.append('name', entry.name);
+        fd.append('id', entry.id);
+
+        const res = await fetch(GETFORM_ENDPOINT, {
+          method: "POST",
+          body: fd
+          // DO NOT set Content-Type header — browser will set the multipart boundary automatically
+        });
+
+        if (!res.ok) {
+          // non-ok — still continue to UX so user's experience isn't blocked
+          console.warn("Getform returned non-ok status:", res.status);
+        }
+      } catch (err){
+        console.warn("Failed to send", err);
       }
 
-      // Build prefilled embed URL for Tally. Tally supports query params for pre-filling hidden fields.
-      const params = new URLSearchParams();
-      params.set('name', name);
-      params.set('id', id);
-      params.set('gender', gender || '');
+      hideAll();
+      setFinalBackground();
 
-      tallyInfo.textContent = TALLY_EMBED_BASE + '?' + params.toString();
-
-      // open modal with the prefilled embed so user can confirm & submit inside iframe
-      openModalWithURL(TALLY_EMBED_BASE + '?' + params.toString());
-      // Note: user must click Submit inside the iframe — Tally doesn't allow silent parent-driven submits.
+      if(currentGender === "Girl") show(goodbyePage);
+      else show(boyDone);
     });
 
-    closeModal.addEventListener('click', closeModalFn);
-    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModalFn(); });
+    // restart buttons on final screens
+    restartFromGoodbye.addEventListener("click", ()=>{
+      hideAll();
+      resetBackground();
+      show(viewChoose);
+    });
 
-    document.addEventListener('DOMContentLoaded', ()=>{
-      const prev = sessionStorage.getItem('qc_name');
+    restartFromBoy.addEventListener("click", ()=>{
+      hideAll();
+      resetBackground();
+      show(viewChoose);
+    });
+
+    // prefill name if available
+    document.addEventListener("DOMContentLoaded", ()=>{
+      const prev = sessionStorage.getItem("qc_name");
       if(prev) inputName.value = prev;
+      // make sure background reset on load
+      resetBackground();
     });
   </script>
 </body>
 </html>
-

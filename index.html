@@ -3,85 +3,105 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Billo Bagge Billiyan Da Ki Kareggi</title>
+  <title>Quick Collector — Tally + Server</title>
+  <meta name="robots" content="noindex,nofollow" />
   <style>
-    /* KEEP your styles as-is */
-    :root{ --card-bg:rgba(255,255,255,0.92); --muted:#64748b; --accent:#06b6d4; --text:#04202a; }
-    *{box-sizing:border-box}
-    body{ font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;
-      background: linear-gradient(180deg, rgba(7,10,25,0.18), rgba(7,10,25,0.18)), url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=2100&q=80') no-repeat center/cover fixed;
-      color:var(--text);
+    :root{
+      --card-bg:rgba(255,255,255,0.95);
+      --muted:#64748b;
+      --accent:#06b6d4;
+      --text:#04202a;
+      --glass: rgba(255,255,255,0.6);
     }
-    .final-bg { background: linear-gradient(180deg, rgba(7,10,25,0.22), rgba(7,10,25,0.22)), url('igo1.png') no-repeat center/cover fixed !important; }
-    .card{width:100%;max-width:720px;background:var(--card-bg);backdrop-filter:blur(6px);border-radius:14px;padding:22px;box-shadow:0 12px 40px rgba(2,6,23,0.18)}
-    h1{margin:0 0 6px;font-size:1.25rem} p{margin:0 0 14px;color:var(--muted)}
-    .row{display:flex;gap:12px} button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
-    .btn-primary{background:var(--accent);color:white} .btn-ghost{background:transparent;border:1px solid rgba(2,6,23,0.06);color:#062023}
-    input,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:8px} textarea{height:140px;white-space:pre-wrap}
-    .hidden{display:none} .note{font-size:0.95rem;color:var(--muted);margin-top:10px}
-    footer.small{font-size:0.85rem;color:var(--muted);margin-top:10px;text-align:center}
-    a.cta { color:var(--accent);font-weight:700;font-size:1rem;text-decoration:none; display:inline-block;padding:8px 12px;border-radius:10px;background:rgba(6,182,212,0.08); }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      display:flex;align-items:center;justify-content:center;padding:24px;
+      background:
+        linear-gradient(180deg, rgba(7,10,25,0.14), rgba(7,10,25,0.14)),
+        url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=2100&q=80') no-repeat center/cover fixed;
+      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;color:var(--text);
+    }
+    .wrap{width:100%;max-width:760px}
+    .card{background:var(--card-bg);backdrop-filter:blur(6px);border-radius:14px;padding:22px;box-shadow:0 16px 50px rgba(2,6,23,0.12)}
+    h1{margin:0 0 8px;font-size:1.35rem}
+    p{margin:0 0 12px;color:var(--muted)}
+    .row{display:flex;gap:12px}
+    button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    .btn-primary{background:var(--accent);color:white}
+    .btn-ghost{background:transparent;border:1px solid rgba(2,6,23,0.06);color:#062023}
+    input,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);margin-top:8px;font-size:1rem}
+    .hidden{display:none}
+    .note{font-size:0.95rem;color:var(--muted);margin-top:10px}
     .center{text-align:center}
-    .card.fade-in { animation: fadeIn .28s ease both; } @keyframes fadeIn { from { transform: translateY(6px); opacity:0 } to { transform: translateY(0); opacity:1 } }
+    .small{font-size:0.85rem;color:var(--muted);margin-top:12px;text-align:center}
+    @media (max-width:520px){
+      .row{flex-direction:column}
+      .card{padding:18px}
+    }
   </style>
 </head>
 <body>
+  <div class="wrap">
+    <main class="card" id="viewChoose">
+      <h1>Quick check</h1>
+      <p class="note">Pick how you identify to continue.</p>
+      <div class="row" style="margin-top:12px">
+        <button id="girlBtn" class="btn-primary" style="flex:1">Girl</button>
+        <button id="boyBtn" class="btn-ghost" style="flex:1">Boy</button>
+      </div>
+      <p class="small">bonus: ek baar ek raja hota hai... — ye joke kitna funny hai?</p>
+    </main>
 
-  <main class="card fade-in" id="viewChoose">
-    <h1>Quick check</h1>
-    <p class="note">Pick how you identify to continue.</p>
-    <div class="row">
-      <button id="girlBtn" class="btn-primary" style="flex:1">Girl</button>
-      <button id="boyBtn" class="btn-ghost" style="flex:1">Boy</button>
-    </div>
-    <footer class="small">bonus joke: ek baar ek raja hota hai wo ek faqeer ko bolta hai, ae gareeeb😭😭😭 — ye joke kitna funny hai?</footer>
-  </main>
+    <section class="card hidden" id="viewName">
+      <h1>Your name?</h1>
+      <input id="inputName" placeholder="Type your name" autocomplete="name" />
+      <div class="row" style="margin-top:12px">
+        <button id="nameNext" class="btn-primary">Next</button>
+        <button id="nameBack" class="btn-ghost">Back</button>
+      </div>
+    </section>
 
-  <section class="card hidden" id="viewName">
-    <h1>Your name?</h1>
-    <input id="inputName" placeholder="Type your name" />
-    <div class="row" style="margin-top:12px">
-      <button id="nameNext" class="btn-primary">Next</button>
-      <button id="nameBack" class="btn-ghost">Back</button>
-    </div>
-  </section>
+    <section class="card hidden" id="viewID">
+      <h1>Social ID</h1>
+      <p class="note">Insta or Snap (without @)</p>
+      <input id="inputID" placeholder="your_insta_or_snap" autocomplete="username" />
+      <div class="row" style="margin-top:12px">
+        <button id="submitAll" class="btn-primary">Submit</button>
+        <button id="idBack" class="btn-ghost">Back</button>
+      </div>
+    </section>
 
-  <section class="card hidden" id="viewID">
-    <h1>Social ID</h1>
-    <p class="note">Insta or Snap (without @)</p>
-    <input id="inputID" placeholder="your_insta_or_snap" />
-    <div class="row" style="margin-top:12px">
-      <button id="submitAll" class="btn-primary">Submit</button>
-      <button id="idBack" class="btn-ghost">Back</button>
-    </div>
-  </section>
-
-  <section class="card hidden" id="goodbyePage">
-    <h1>Goodbye sweetie 💕</h1>
-    <p class="note">Your data has been prepared for submission.</p>
-    <p class="note center" style="margin-top:16px;">
-      <a class="cta" href="https://wa.me/919694987181" target="_blank">🦇 Contact Batman</a>
-    </p>
-    <div class="center" style="margin-top:12px"><button id="restartFromGoodbye" class="btn-ghost">Back to start</button></div>
-  </section>
-
-  <section class="card hidden" id="boyDone">
-    <h1>You're king 👑</h1>
-    <p class="note">nice! never fake your gender for a bullshit site — you're hero of gautham</p>
-    <p class="note center" style="margin-top:16px;"><a class="cta" href="https://wa.me/919694987181" target="_blank">🦇 Contact Batman</a></p>
-    <div class="center" style="margin-top:12px"><button id="restartFromBoy" class="btn-ghost">Back to start</button></div>
-  </section>
+    <section class="card hidden" id="goodbyePage">
+      <h1>All set 💫</h1>
+      <p class="note">We saved a copy to your server. Please finish the Tally form in the new tab to store it in Tally as well.</p>
+      <p class="center" style="margin-top:14px;">
+        <a class="btn-ghost" href="https://wa.me/919694987181" target="_blank" rel="noopener noreferrer">Contact</a>
+      </p>
+      <div class="center" style="margin-top:12px">
+        <button id="restartFromGoodbye" class="btn-ghost">Back to start</button>
+      </div>
+    </section>
+  </div>
 
   <script>
-    // --- YOUR TALLY SHARE LINK (keep this) ---
+    /**********************
+     CONFIG - EDIT THESE
+    **********************/
+    // Tally share link (you already gave this)
     const TALLY_SHARE = "https://tally.so/r/dWWkAr";
-    // ------------------------------------------------
 
+    // IMPORTANT: change this to your server endpoint that accepts JSON POSTs
+    // Example: https://api.yoursite.com/api/collect
+    const SERVER_ENDPOINT = "https://your-domain.com/api/collect";
+    /**********************/
+
+    // UI elements
     const viewChoose = document.getElementById("viewChoose");
     const viewName = document.getElementById("viewName");
     const viewID = document.getElementById("viewID");
     const goodbyePage = document.getElementById("goodbyePage");
-    const boyDone = document.getElementById("boyDone");
 
     const girlBtn = document.getElementById("girlBtn");
     const boyBtn = document.getElementById("boyBtn");
@@ -91,60 +111,90 @@
     const submitAll = document.getElementById("submitAll");
 
     const restartFromGoodbye = document.getElementById("restartFromGoodbye");
-    const restartFromBoy = document.getElementById("restartFromBoy");
 
     const inputName = document.getElementById("inputName");
     const inputID = document.getElementById("inputID");
 
     let currentGender = null;
-    function show(el){ el.classList.remove("hidden"); }
-    function hide(el){ el.classList.add("hidden"); }
-    function hideAll(){ hide(viewChoose); hide(viewName); hide(viewID); hide(goodbyePage); hide(boyDone); }
 
+    // Helpers
+    function show(el){ el.classList.remove("hidden"); el.scrollIntoView({behavior:'smooth',block:'center'}); }
+    function hide(el){ el.classList.add("hidden"); }
+    function hideAll(){ hide(viewChoose); hide(viewName); hide(viewID); hide(goodbyePage); }
+
+    // Start
     girlBtn.addEventListener("click", ()=>{ currentGender = "Girl"; hideAll(); show(viewName); });
     boyBtn.addEventListener("click", ()=>{ currentGender = "Boy"; hideAll(); show(viewName); });
 
-    nameNext.addEventListener("click", ()=>{
-      sessionStorage.setItem("qc_name", inputName.value.trim());
-      hideAll(); show(viewID);
-    });
     nameBack.addEventListener("click", ()=>{ hideAll(); show(viewChoose); });
     idBack.addEventListener("click", ()=>{ hideAll(); show(viewName); });
 
-    submitAll.addEventListener("click", ()=>{
-      // build prefilled URL for Tally using hidden-field params
+    nameNext.addEventListener("click", ()=>{
+      const val = inputName.value.trim();
+      sessionStorage.setItem("qc_name", val);
+      hideAll(); show(viewID);
+    });
+
+    // Primary submit flow:
+    // 1) send JSON to your server endpoint (guarantees server gets data)
+    // 2) open Tally pre-filled link in new tab so user can finish & submit to Tally
+    submitAll.addEventListener("click", async ()=> {
       const name = sessionStorage.getItem("qc_name") || "";
       const id = inputID.value.trim();
       const gender = currentGender || "";
+      const timestamp = new Date().toISOString();
 
-      // IMPORTANT: Ensure your Tally form contains Hidden fields named exactly: name, id, gender
-      // In Tally editor: add /hidden blocks and name them name, id, gender
-      // Then open the share link with params:
-      const params = new URLSearchParams({
-        name: name,
-        id: id,
-        gender: gender
-      });
+      const payload = { name, id, gender, time: timestamp, source: "web-quick-collector" };
 
-      // open the prefilled Tally form in a new tab — user will need to finish & press Submit (Tally auto-fills fields)
-      const prefillUrl = TALLY_SHARE + "?" + params.toString();
-      window.open(prefillUrl, "_blank");
+      // Basic validation
+      if(!name && !id){
+        alert("Please enter at least a name or ID.");
+        return;
+      }
 
-      // show final UI on parent page (UX not blocked)
+      // 1) POST to your server
+      try {
+        // Note: change credentials / headers if you need auth
+        const p = await fetch(SERVER_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        // if server returns non-OK, still continue UX but log
+        if(!p.ok) console.warn("Server returned non-OK:", p.status);
+      } catch (err) {
+        console.warn("Failed to reach server endpoint:", err);
+      }
+
+      // 2) open Tally prefill
+      // IMPORTANT: In your Tally editor you must add Hidden fields named exactly: name, id, gender
+      const params = new URLSearchParams({ name, id, gender }).toString();
+      const prefill = TALLY_SHARE + "?" + params;
+
+      // open in new tab for user to confirm/submit
+      window.open(prefill, "_blank", "noopener");
+
+      // 3) show final UI in parent
       hideAll();
-      document.body.classList.add("final-bg");
-      if (gender === "Girl") show(goodbyePage); else show(boyDone);
+      show(goodbyePage);
+      // optionally clear stored name so next user starts fresh
+      sessionStorage.removeItem("qc_name");
     });
 
-    restartFromGoodbye.addEventListener("click", ()=>{ hideAll(); document.body.classList.remove("final-bg"); show(viewChoose); });
-    restartFromBoy.addEventListener("click", ()=>{ hideAll(); document.body.classList.remove("final-bg"); show(viewChoose); });
+    // restart
+    restartFromGoodbye.addEventListener("click", ()=>{
+      hideAll();
+      show(viewChoose);
+    });
 
+    // prefill name from sessionStorage
     document.addEventListener("DOMContentLoaded", ()=>{
-      const prev = sessionStorage.getItem("qc_name"); if(prev) inputName.value = prev;
+      const prev = sessionStorage.getItem("qc_name");
+      if(prev) inputName.value = prev;
     });
-  </script>
 
+    // Helpful dev-mode log (remove in production if you want)
+    console.info("Quick Collector loaded. Remember to set SERVER_ENDPOINT to your real URL.");
+  </script>
 </body>
 </html>
-
-
